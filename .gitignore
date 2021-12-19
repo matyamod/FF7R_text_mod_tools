@@ -1,0 +1,10 @@
+__pycache__
+build
+dist
+dualsub*
+json
+*test*
+py*
+*.spec
+*.py
+!src/*py
