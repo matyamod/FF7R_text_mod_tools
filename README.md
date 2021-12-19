@@ -10,11 +10,12 @@ I made [dualsub mod](https://www.nexusmods.com/finalfantasy7remake/mods/57) by t
 ### Usage
 
 ```
-make_dualsub_mod.exe pak_dir lang1 lang2
+make_dualsub_mod.exe pak_dir lang1 lang2 [options]
 ```
 - pak_dir: where unpacked files are (e.g. D:\quickbms\pakchunk0_s24-WindowsNoEditor)
 - lang1: a language you want to display
 - lang2: another language you want to display
+- --just_swap: swaps subtitles instead of merging them
 
 If you run `make_dualsub_mod.exe`, a mod folder will be generated (like `dualsub_mod_US_JP`).
 
