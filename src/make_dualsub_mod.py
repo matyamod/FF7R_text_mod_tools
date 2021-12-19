@@ -11,6 +11,7 @@ def get_args():
     parser.add_argument('--mod_name', default="dualsub_mod_l1_l2", help = "Folder's name for new mod")
     parser.add_argument('--save_as_json', action='store_true', help="Export subtitle data as json")
     parser.add_argument('--vorbose', action='store_true', help="")
+    parser.add_argument('--just_swap', action='store_true', help="")
 
     #parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
@@ -23,6 +24,7 @@ if __name__=="__main__":
     pak_dir = args.pak_dir
     lang1 = args.lang1
     lang2 = args.lang2
+    just_swap = args.just_swap
     
     #Check language
     if lang1==lang2:
@@ -36,7 +38,7 @@ if __name__=="__main__":
 
     mod_name = args.mod_name
     if mod_name=="dualsub_mod_l1_l2":
-        mod_name="dualsub_mod_"+lang1+"_"+lang2
+        mod_name="dual"*(not just_swap)+"swap"*just_swap+"sub_mod_"+lang1+"_"+lang2
 
     TEXT_DIR = "End/Content/GameContents/Text"
 
@@ -45,7 +47,7 @@ if __name__=="__main__":
 
     def make_dualsub(uexp, lang, text_object_list):
         #Merge subtitles
-        uexp.merge_text(text_object_list)
+        uexp.merge_text(text_object_list, just_swap=args.just_swap)
 
         #Export subtitle data as json
         if args.save_as_json:

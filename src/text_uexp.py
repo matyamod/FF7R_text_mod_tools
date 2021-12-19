@@ -108,7 +108,7 @@ class TextUexp:
         with open(file, 'w') as f:
             json.dump(json_data, f, indent=4)
 
-    def merge_text(self, text_object_list):
+    def merge_text(self, text_object_list, just_swap=False):
         i=0
         for t2 in text_object_list:
             
@@ -134,7 +134,10 @@ class TextUexp:
             if new_utf16:
                 lf=lf.encode("utf-16-le").decode("utf-16-le")
 
-            new_text = text+lf+text_2
+            if just_swap:
+                new_text = text_2
+            else:
+                new_text = text+lf+text_2
             self.text_object_list[i]["text"]={"utf-16":new_utf16, "str":new_text}
             i+=1
 
