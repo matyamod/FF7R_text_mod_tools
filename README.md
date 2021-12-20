@@ -1,6 +1,14 @@
 # FF7R_text_mod_tools
-Subtitle modding tools for FF7R (Final Fantasy VII Remake)
+Subtitle modding tools for FF7R (Final Fantasy VII Remake)<br>
+
 <img src = "image/ff7r_dualsub_sample.jpg" width=600>
+
+There are 3 tools I made.
+
+- make_dualsub_mod.exe: Merges or Swaps subtitle data between 2 languages.
+- uexp_to_json.exe: Exports subtitle data as .json.
+- json_to_uexp.exe: Swaps subtitle data with .json. 0
+
 ## make_dualsub_mod.exe
 `make_dualsub_mod.exe` is a tool for merging subtitle data.<br>
 You can make a mod to display 2 languages in the game.<br>
