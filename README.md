@@ -5,12 +5,12 @@ Subtitle modding tools for FF7R (Final Fantasy VII Remake)<br>
 
 There are 3 tools I made.
 
-- make_dualsub_mod.exe: Merges or Swaps subtitle data between 2 languages.
+- make_dualsub_mod.exe: Merges (or swaps) subtitle data between 2 languages.
 - uexp_to_json.exe: Exports subtitle data as .json.
 - json_to_uexp.exe: Swaps subtitle data with .json.
 
 ## make_dualsub_mod.exe
-`make_dualsub_mod.exe` is a tool for merging subtitle data.<br>
+`make_dualsub_mod.exe` is a tool for merging (or swapping) subtitle data.<br>
 You can make a mod to display 2 languages in the game.<br>
 <br>
 I made [dualsub mod](https://www.nexusmods.com/finalfantasy7remake/mods/57) by this tool.<br>
@@ -30,7 +30,7 @@ make_dualsub_mod.exe pak_dir lang1 lang2 [options]
 If you run `make_dualsub_mod.exe`, a mod folder (like `.\dualsub_mod_US_JP`) will be generated .
 
 ## uexp_to_json.exe
-`uexp_to_json.exe` is a tool to export subtitle data as .json.<br>
+`uexp_to_json.exe` is a tool for exporting subtitle data as .json.<br>
 This tool can use for only subtitle data (`End\Content\GameContents\Text\*\*.uexp`).<br>
 Also, the output json file will not be compatible with other tools<br>
 ### Usage
@@ -42,7 +42,7 @@ make_dualsub_mod.exe uexp --out_dir="json"
 - --out_dir: save folder
 
 ## json_to_uexp.exe
-`json_to_uexp.exe` is a tool to replace subtitle data with .json.<br>
+`json_to_uexp.exe` is a tool for replacing subtitle data with .json.<br>
 
 ### Usage
 
