@@ -22,5 +22,5 @@ if __name__=="__main__":
 
     #Save as json
     util.mkdir(out_dir)
-    uexp.save_as_json(os.path.join(out_dir, os.path.basename(file)[:-4]+".json"))
+    uexp.save_as_json(os.path.join(out_dir, os.path.basename(file)[:-4]+"json"))
 

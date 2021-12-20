@@ -1,6 +1,7 @@
 import os
 import file_util as util
 import json
+import warnings
 
 class TextUexp:
     HEAD = b"\x00\x03\x03\x00"
@@ -27,6 +28,10 @@ class TextUexp:
         if uexp_file[-5:]!=".uexp":
             raise("file extension error (not .uexp)")
 
+        if not os.path.basename(uexp_file)[:3].isdecimal():
+            warnings.warn("This file might be unexpected one. ("+uexp_file+")")
+
+
         self.file=uexp_file
         bin = util.read_binary(self.file)
         self.header = bin[0:17]
@@ -36,7 +41,7 @@ class TextUexp:
         if self.header[0:4] != TextUexp.HEAD \
             or self.header[8:12] != TextUexp.PAD \
             or self.lang not in TextUexp.LANG_LIST:
-            raise("format error 1")
+            raise("format error 1: Not subtitle uexp")
         
         data = bin[17:]
         
@@ -44,10 +49,10 @@ class TextUexp:
 
         while (data != TextUexp.TAIL):
             if len(data)<4:
-                raise("format error 2")
-            audio_utf16, audio_file, data = TextUexp.pop_str(data)
-            if audio_file[0]!="$":
-                raise("format error 3")
+                raise("format error 2: Not uexp")
+            id_utf16, id_file, data = TextUexp.pop_str(data)
+            if id_file[0]!="$":
+                raise("format error 3: Failed to parse")
 
             if data[0:4]==TextUexp.PAD:
                 text_utf16=False
@@ -82,7 +87,7 @@ class TextUexp:
                 talker_utf16, talker, data = TextUexp.pop_str(data)
             
             text_object = {
-                "audio file": {"utf-16": audio_utf16, "str":audio_file },
+                "id": {"utf-16": id_utf16, "str":id_file },
                 "text":{"utf-16":text_utf16, "str":text},
                 "sep_type":sep_type,
                 "talker":{"utf-16":talker_utf16, "str":talker}
@@ -92,7 +97,7 @@ class TextUexp:
                 text_object["esep"]=esep
 
             if vorbose:
-                print(audio_file)
+                print(id_file)
                 print(text)
                 print(talker)
             
@@ -124,7 +129,12 @@ class TextUexp:
             if text=="" or t["sep_type"]==2:
                 i+=1
                 continue
+
+            #check id
+            if t["id"]["str"]!=t2["id"]["str"]:
+                raise("Failed to merge. Structure is not the same.")
                 
+            #encoding
             new_utf16=utf16 or utf16_2
             if utf16 and (not utf16_2):
                 text_2=text_2.encode("utf-16-le").decode("utf-16-le")
@@ -134,10 +144,12 @@ class TextUexp:
             if new_utf16:
                 lf=lf.encode("utf-16-le").decode("utf-16-le")
 
+            #merge (or swap) text
             if just_swap:
                 new_text = text_2
             else:
                 new_text = text+lf+text_2
+
             self.text_object_list[i]["text"]={"utf-16":new_utf16, "str":new_text}
             i+=1
 
@@ -150,10 +162,14 @@ class TextUexp:
         return num_byte + str_byte + b"\x00"*(utf16+1)
 
     def save_as_uexp(self, file):
+        #check uasset exist
+        if not os.path.isfile(self.file[:-4]+"uasset"):
+            raise("Not found "+self.file[:-4]+"uasset")
+
         data = self.header
         for t in self.text_object_list:
-            audio = t["audio file"]
-            data += TextUexp.str_to_bin(audio["utf-16"], audio["str"])
+            id = t["id"]
+            data += TextUexp.str_to_bin(id["utf-16"], id["str"])
             text = t["text"]
             if text["str"]=="":
                 data += TextUexp.PAD
@@ -180,4 +196,17 @@ class TextUexp:
 
         uasset_bin = util.read_binary(self.file[:-4]+"uasset")
         util.write_binary(file[:-4]+"uasset", uasset_bin[:-92]+new_uexp_size_bin+uasset_bin[-88:])
+
+    def swap_with_json(self, json_file):
+        with open(json_file) as f:
+            uexp_as_json = json.load(f)
+        
+        text_object_list2=[]
+        for i in range(len(self.text_object_list)):
+            text_object_list2.append(uexp_as_json[str(i)])
+        
+        self.merge_text(text_object_list2, just_swap=True)
+
+
+
 
