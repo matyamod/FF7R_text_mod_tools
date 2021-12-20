@@ -7,7 +7,7 @@ There are 3 tools I made.
 
 - make_dualsub_mod.exe: Merges or Swaps subtitle data between 2 languages.
 - uexp_to_json.exe: Exports subtitle data as .json.
-- json_to_uexp.exe: Swaps subtitle data with .json. 0
+- json_to_uexp.exe: Swaps subtitle data with .json.
 
 ## make_dualsub_mod.exe
 `make_dualsub_mod.exe` is a tool for merging subtitle data.<br>
