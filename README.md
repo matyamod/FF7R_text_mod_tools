@@ -52,3 +52,7 @@ make_dualsub_mod.exe uexp json --out_dir="new_uexp"
 - uexp: uexp file you want to mod (e.g. `D:\quickbms\pakchunk0_s24-WindowsNoEditor\End\Content\GameContents\Text\US\010-MAKO1_TxtRes.uexp`)
 - json: json file (e.g. .\json\010-MAKO1_TxtRes.json)
 - --out_dir: save folder
+
+## .uexp Format Specifications
+Here is my analysis of .uexp format for subtitle data.<br>
+[.uexp Format for Subtitle Data · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/.uexp-Format-for-Subtitle-Data)
