@@ -33,7 +33,7 @@ make_dualsub_mod.exe pak_dir lang1 lang2 [options]
 
 If you run `make_dualsub_mod.exe`, a mod folder (like `.\dualsub_mod_US_JP`) will be generated .
 ## Make Swapsub Mod
-If you run `make_dualsub_mod.exe` with `--just_swap` otption, you can swaps subtitle data instead of merging them.
+If you run `make_dualsub_mod.exe` with `--just_swap` otption, subtitle data will be swapped between 2 languages.
 
 
 ## .uexp to .json
