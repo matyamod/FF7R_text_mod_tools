@@ -9,29 +9,6 @@ def read_binary(file):
     f.close()
     return data
 
-def read_txt(file, remove_line_break=True, ignore_extention=False):
-    print("file: "+file)
-    if file[-4:]!=".txt" and not ignore_extention:
-        raise ValueError("'file' should be a text file.")
-
-    with open(file, 'rb') as f:
-        raw_string = f.read()
-        enc = chardet.detect(raw_string)['encoding']
-        if enc=='Windows-1254':
-            enc='shift_jis'
-        if enc is None:
-            return []
-        print('encoding: '+enc)
-        raw_string = raw_string.decode(encoding=enc)
-        lines = raw_string.splitlines()
-        if not remove_line_break:
-            lines = [l+'\n' for l in lines]
-    #if remove_line_break:
-    #   return ['a','b','c',...]
-    #else:
-    #   return ['a\n','b\n','c\n',...]
-    return lines
-
 def write_binary(file, bin):
     f=open(file, "wb")
     f.write(bin)
@@ -41,7 +18,7 @@ def write_txt(file, lines, insert_line_break=True, ignore_extention=False):
     if file[-4:]!=".txt" and not ignore_extention:
         raise ValueError("'file' should be a text file.")
 
-    with open(file, "w") as f:
+    with open(file, "w", encoding='utf-8') as f:
         if insert_line_break:
             f.write("\n".join(lines)) 
         else:

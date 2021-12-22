@@ -8,3 +8,5 @@ py*
 *.spec
 *.py
 !src/*py
+*.exe
+txt

@@ -6,7 +6,7 @@ import warnings
 class TextUexp:
     HEAD = b"\x00\x03\x03\x00"
     PAD = b"\x00\x00\x00\x00"
-    TAIL = b"\xC1\x83\x2A\x9E"
+    FOOT = b"\xC1\x83\x2A\x9E"
     
     SEP  = [b"\x01\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00", b"\x01\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00", b"\x02\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00"]
     ESEP = b"\x0E\x00\x00\x00\x00\x00\x00\x00"
@@ -26,7 +26,7 @@ class TextUexp:
 
     def __init__(self, uexp_file, vorbose=False):
         if uexp_file[-5:]!=".uexp":
-            raise("file extension error (not .uexp)")
+            raise RuntimeError("file extension error (not .uexp)")
 
         if not os.path.basename(uexp_file)[:3].isdecimal():
             warnings.warn("This file might be unexpected one. ("+uexp_file+")")
@@ -39,20 +39,22 @@ class TextUexp:
 
         #checks format
         if self.header[0:4] != TextUexp.HEAD \
-            or self.header[8:12] != TextUexp.PAD \
+            or self.header[8:13] != TextUexp.PAD+b"\x00" \
             or self.lang not in TextUexp.LANG_LIST:
-            raise("format error 1: Not subtitle uexp")
+            raise RuntimeError("format error 1: Not subtitle uexp")
+
+        object_num = int.from_bytes(self.header[13:17], "little", signed=True)
         
         data = bin[17:]
         
         self.text_object_list = []
 
-        while (data != TextUexp.TAIL):
+        while (data != TextUexp.FOOT):
             if len(data)<4:
-                raise("format error 2: Not uexp")
-            id_utf16, id_file, data = TextUexp.pop_str(data)
-            if id_file[0]!="$":
-                raise("format error 3: Failed to parse")
+                raise RuntimeError("format error 2: Not uexp")
+            id_utf16, id, data = TextUexp.pop_str(data)
+            if id[0]!="$":
+                raise RuntimeError("format error 3: Failed to parse")
 
             if data[0:4]==TextUexp.PAD:
                 text_utf16=False
@@ -66,8 +68,8 @@ class TextUexp:
                 sep_type = TextUexp.SEP.index(sep)
                 data = data[12:]
             else:
-                sep_type=len(TextUexp.SEP)
-
+                sep_type=-1
+            
             if sep_type==2:
                 text2_utf16, text2, data = TextUexp.pop_str(data)
                 if data[0:8]==TextUexp.ESEP:
@@ -87,7 +89,7 @@ class TextUexp:
                 talker_utf16, talker, data = TextUexp.pop_str(data)
             
             text_object = {
-                "id": {"utf-16": id_utf16, "str":id_file },
+                "id": {"utf-16": id_utf16, "str":id },
                 "text":{"utf-16":text_utf16, "str":text},
                 "sep_type":sep_type,
                 "talker":{"utf-16":talker_utf16, "str":talker}
@@ -97,11 +99,14 @@ class TextUexp:
                 text_object["esep"]=esep
 
             if vorbose:
-                print(id_file)
+                print(id)
                 print(text)
                 print(talker)
             
             self.text_object_list.append(text_object)
+        
+        if len(self.text_object_list)!=object_num:
+            raise RuntimeError("Parse failed. Number of objects does not match.")
 
     def save_as_json(self, file):
         json_data = {}
@@ -114,6 +119,9 @@ class TextUexp:
             json.dump(json_data, f, indent=4)
 
     def merge_text(self, text_object_list, just_swap=False):
+        if len(self.text_object_list)!=len(text_object_list):
+            raise RuntimeError("Merge failed. Number of objects does not match.")
+
         i=0
         for t2 in text_object_list:
             
@@ -132,7 +140,7 @@ class TextUexp:
 
             #check id
             if t["id"]["str"]!=t2["id"]["str"]:
-                raise("Failed to merge. Structure is not the same.")
+                raise RuntimeError("Merge failed. Structure is not the same.")
                 
             #encoding
             new_utf16=utf16 or utf16_2
@@ -164,7 +172,7 @@ class TextUexp:
     def save_as_uexp(self, file):
         #check uasset exist
         if not os.path.isfile(self.file[:-4]+"uasset"):
-            raise("Not found "+self.file[:-4]+"uasset")
+            raise RuntimeError("Not found "+self.file[:-4]+"uasset")
 
         data = self.header
         for t in self.text_object_list:
@@ -175,7 +183,7 @@ class TextUexp:
                 data += TextUexp.PAD
             else:
                 data += TextUexp.str_to_bin(text["utf-16"], text["str"])
-            if t["sep_type"]<len(TextUexp.SEP):
+            if t["sep_type"]>=0:
                 data += TextUexp.SEP[t["sep_type"]]
             if t["sep_type"]==2:
                 text2 = t["text2"]
@@ -188,7 +196,7 @@ class TextUexp:
                 data += TextUexp.PAD
             else:
                 data += TextUexp.str_to_bin(talker["utf-16"], talker["str"])
-        data += TextUexp.TAIL
+        data += TextUexp.FOOT
         util.write_binary(file, data)
 
         new_uexp_size = os.path.getsize(file)-4
@@ -206,6 +214,33 @@ class TextUexp:
             text_object_list2.append(uexp_as_json[str(i)])
         
         self.merge_text(text_object_list2, just_swap=True)
+
+    def save_as_txt(self, txt_file):
+        txt_data = []
+        for t in self.text_object_list:
+            text = t["text"]["str"]
+            talker = t["talker"]["str"]
+
+            if text==0 or talker=="":
+                continue
+
+            if t["text"]["utf-16"]:
+                text = text.encode("utf-8").decode("utf-8")
+            text = text.split("\r\n")
+            if t["talker"]["utf-16"]:
+                talker = talker.encode("utf-8").decode("utf-8")
+            
+            txt_data.append(talker)
+            for l in text:
+                if l=="":
+                    continue
+                txt_data.append("   "+l)
+            txt_data.append("")
+
+        if len(txt_data)==0:
+            txt_data.append("Empty file")
+
+        util.write_txt(txt_file, txt_data)
 
 
 

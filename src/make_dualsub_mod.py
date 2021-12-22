@@ -10,6 +10,7 @@ def get_args():
     parser.add_argument('lang2', help = "BR, CN, DE, ES, FR, IT, JP, KR, MX, TW, US")
     parser.add_argument('--mod_name', default="dualsub_mod_l1_l2", help = "Folder's name for new mod")
     parser.add_argument('--save_as_json', action='store_true', help="Export subtitle data as json")
+    parser.add_argument('--save_as_txt', action='store_true', help="Export subtitle data as txt")
     parser.add_argument('--vorbose', action='store_true', help="")
     parser.add_argument('--just_swap', action='store_true', help="")
 
@@ -28,13 +29,13 @@ if __name__=="__main__":
     
     #Check language
     if lang1==lang2:
-        raise("lang1 and lang2 are the same.")
+        raise RuntimeError("lang1 and lang2 are the same.")
 
     LANG_LIST = ["BR", "CN", "DE", "ES", "FR", "IT", "JP", "KR", "MX", "TW", "US"]
     if lang1 not in LANG_LIST:
-        raise(lang1+" is Not supported. Select another language.")
+        raise RuntimeError(lang1+" is Not supported. Select another language.")
     if lang2 not in LANG_LIST:
-        raise(lang2+" is Not supported. Select another language.")
+        raise RuntimeError(lang2+" is Not supported. Select another language.")
 
     mod_name = args.mod_name
     if mod_name=="dualsub_mod_l1_l2":
@@ -51,7 +52,11 @@ if __name__=="__main__":
 
         #Export subtitle data as json
         if args.save_as_json:
-            uexp.save_as_json("json/"+f[:-4]+"_"+lang+".json")
+            uexp.save_as_json("json/"+lang+"/"+f[:-4]+".json")
+
+        #Export subtitle data as json
+        if args.save_as_txt:
+            uexp.save_as_txt("txt/"+lang+"/"+f[:-4]+".txt")
 
         #Make a mod folder
         out_dir = os.path.join(mod_name, TEXT_DIR, lang)
@@ -73,7 +78,12 @@ if __name__=="__main__":
         lang2_text_object_list = deepcopy(uexp_lang2.text_object_list)
         
         if args.save_as_json:
-            util.mkdir("json")
+            util.mkdir("json/"+lang1)
+            util.mkdir("json/"+lang2)
+
+        if args.save_as_txt:
+            util.mkdir("txt/"+lang1)
+            util.mkdir("txt/"+lang2)
 
         make_dualsub(uexp_lang1, lang1, lang2_text_object_list)
         make_dualsub(uexp_lang2, lang2, lang1_text_object_list)
