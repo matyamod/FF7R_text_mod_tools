@@ -4,6 +4,7 @@ dist
 dualsub*
 json
 txt
+new_uexp
 *test*
 py*
 *.spec
