@@ -65,7 +65,7 @@ uexp_to_json.exe uexp --mode="json2uexp" --json=json [options]
 - --out_dir= : save folder
 
 ## .uexp to .txt
-If you run `uexp_to_json.exe` with `--mode="uexp2txt"` option, text data will be exported as .txt.<br>
+If you run `uexp_to_json.exe` with `--mode="uexp2txt"` option, text data will be exported as .txt like [this](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/Dialog-Test-Data%3F).<br>
 
 ### Usage
 
