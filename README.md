@@ -80,4 +80,4 @@ uexp_to_json.exe uexp --mode="uexp2txt" [options]
 
 ## .uexp Format Specifications
 Here is my analysis of .uexp format for subtitle data.<br>
-[.uexp Format for Subtitle Data · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/.uexp-Format-for-Subtitle-Data)
+[.uexp Format for Text Data · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/.uexp-Format-for-Text-Data)
