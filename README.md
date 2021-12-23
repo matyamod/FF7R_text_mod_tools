@@ -1,5 +1,6 @@
-# FF7R Text Mod Tools
-Subtitle modding tools for FF7R (Final Fantasy VII Remake)<br>
+# FF7R Text Mod Tools ver 1.2
+Text modding tools for FF7R (Final Fantasy VII Remake)<br>
+
 
 <img src = "image/ff7r_dualsub_sample.jpg" width=600>
 
@@ -7,9 +8,9 @@ There are 5 functions in my tools.
 
 - Make dualsub mod: Merges subtitle data between 2 languages.
 - Make swapsub mod: Swaps subtitle data between 2 languages.
-- .uexp to .json: Exports subtitle data as .json.
-- .json to .uexp: Swaps subtitle data with .json.
-- .uexp to .txt: Exports subtitle data as .txt.
+- .uexp to .json: Exports text data as .json.
+- .json to .uexp: Swaps text data with .json.
+- .uexp to .txt: Exports text data as .txt.
 
 
 ## Make Dualsub Mod
@@ -30,6 +31,7 @@ make_dualsub_mod.exe pak_dir lang1 lang2 [options]
 - --just_swap: swaps subtitles instead of merging them
 - --save_as_json: not only makes mod files, but also exports as json
 - --save_as_txt: not only makes mod files, but also exports as txt
+- --all: moddifies all text (not only subtitle, but also command, menu, etc.) 
 
 If you run `make_dualsub_mod.exe`, a mod folder (like `.\dualsub_mod_US_JP`) will be generated .
 ## Make Swapsub Mod
@@ -37,8 +39,8 @@ If you run `make_dualsub_mod.exe` with `--just_swap` otption, subtitle data will
 
 
 ## .uexp to .json
-`uexp_to_json.exe` is a tool for exporting subtitle data as .json.<br>
-This tool can use for only subtitle data (`End\Content\GameContents\Text\*\[0-9]{3}-*.uexp`).<br>
+`uexp_to_json.exe` is a tool for exporting text data as .json.<br>
+This tool can use for only text data (`End\Content\GameContents\Text\*\*.uexp`).<br>
 Also, the output json file will not be compatible with other tools<br>
 ### Usage
 
@@ -50,7 +52,7 @@ uexp_to_json.exe uexp --mode="uexp2json" [options]
 - --out_dir= : save folder
 
 ## .json to .uexp
-If you run `uexp_to_json.exe` with `--mode="json2uexp"` option, subtitle data will be replaced with .json.<br>
+If you run `uexp_to_json.exe` with `--mode="json2uexp"` option, text data will be replaced with .json.<br>
 
 ### Usage
 
@@ -63,7 +65,7 @@ uexp_to_json.exe uexp --mode="json2uexp" --json=json [options]
 - --out_dir= : save folder
 
 ## .uexp to .txt
-If you run `uexp_to_json.exe` with `--mode="uexp2txt"` option, subtitle data will be exported as .txt.<br>
+If you run `uexp_to_json.exe` with `--mode="uexp2txt"` option, text data will be exported as .txt.<br>
 
 ### Usage
 
