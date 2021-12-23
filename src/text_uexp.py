@@ -8,8 +8,11 @@ class TextUexp:
     PAD = b"\x00\x00\x00\x00"
     FOOT = b"\xC1\x83\x2A\x9E"
     
-    SEP  = [b"\x01\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00", b"\x01\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00", b"\x02\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00"]
-    ESEP = b"\x0E\x00\x00\x00\x00\x00\x00\x00"
+    SEP  = [b"\x04\x00\x00\x00\x00\x00\x00\x00", \
+            b"\x03\x00\x00\x00\x00\x00\x00\x00", \
+            b"\x05\x00\x00\x00\x00\x00\x00\x00", \
+            b"\x0C\x00\x00\x00\x00\x00\x00\x00", \
+            b"\x0E\x00\x00\x00\x00\x00\x00\x00"]
 
     LANG_LIST = ["BR", "CN", "DE", "ES", "FR", "IT", "JP", "KR", "MX", "TW", "US"]
 
@@ -28,8 +31,7 @@ class TextUexp:
         if uexp_file[-5:]!=".uexp":
             raise RuntimeError("file extension error (not .uexp)")
 
-        if not os.path.basename(uexp_file)[:3].isdecimal():
-            warnings.warn("This file might be unexpected one. ("+uexp_file+")")
+        self.is_subtitle=os.path.basename(uexp_file)[:3].isdecimal()
 
 
         self.file=uexp_file
@@ -57,29 +59,45 @@ class TextUexp:
                 raise RuntimeError("format error 3: Failed to parse")
 
             if data[0:4]==TextUexp.PAD:
-                text_utf16=False
-                text=""
+                text_list=[]
+                text_utf16_list=[]
                 data = data[4:]    
             else:
                 text_utf16, text, data = TextUexp.pop_str(data)
+                text_list=[text]
+                text_utf16_list=[text_utf16]
             
-            sep=data[0:12]
+
+            text_num = int.from_bytes(data[0:4], 'little')
+            
+            sep=data[4:12]
             if sep in TextUexp.SEP:
                 sep_type = TextUexp.SEP.index(sep)
+                sep_type_list=[sep_type]
                 data = data[12:]
             else:
-                sep_type=-1
+                if text_num!=0:
+                    print(text)
+                    raise RuntimeError("format error 4: Failed to parse")
+                sep_type_list=[]
+                text_num=1
+
             
-            if sep_type==2:
-                text2_utf16, text2, data = TextUexp.pop_str(data)
-                if data[0:8]==TextUexp.ESEP:
-                    esep=True
-                    data=data[8:]
-                else:
-                    esep=False
-            else:
-                text2_utf16=False
-                text2=""
+            if text_num>=2:
+                for i in range(text_num-1):
+                    text_utf16, text, data = TextUexp.pop_str(data)
+                    if data[0:8] in TextUexp.SEP:
+                        sep_type = TextUexp.SEP.index(data[0:8])
+                        data=data[8:]
+                    else:
+                        raise RuntimeError("format error 5: Failed to parse")
+                    
+                    text_list.append(text)
+                    text_utf16_list.append(text_utf16)
+                    sep_type_list.append(sep_type)
+
+                if sep_type!=4:
+                    raise RuntimeError("format error 6: Failed to parse")
 
             if data[0:4]==TextUexp.PAD:
                 talker_utf16=False
@@ -90,13 +108,10 @@ class TextUexp:
             
             text_object = {
                 "id": {"utf-16": id_utf16, "str":id },
-                "text":{"utf-16":text_utf16, "str":text},
-                "sep_type":sep_type,
+                "text":{"utf-16":text_utf16_list, "str":text_list},
+                "sep_type":sep_type_list,
                 "talker":{"utf-16":talker_utf16, "str":talker}
                 }
-            if sep_type==2:
-                text_object["text2"]={"utf-16":text2_utf16, "str":text2}
-                text_object["esep"]=esep
 
             if vorbose:
                 print(id)
@@ -118,47 +133,83 @@ class TextUexp:
         with open(file, 'w') as f:
             json.dump(json_data, f, indent=4)
 
+    def is_same_word(s1,s2):
+        m = min(len(s1), len(s2))
+        if m==1:
+            return s1.lower()==s2.lower()
+        return s1[:m-1].lower()==s2[:m-1].lower()
+
+    def merge_string(self, s1, utf16_1, s2, utf16_2, no_lf, just_swap):
+        new_utf16=utf16_1 or utf16_2
+        if utf16_1 and (not utf16_2):
+            s2=s2.encode("utf-16-le").decode("utf-16-le")
+        if (not utf16_1) and utf16_2:
+            s1=s1.encode("utf-16-le").decode("utf-16-le")
+        lf = "\r\n"
+
+        if (no_lf) and (not lf in s1) and (not lf in s2):
+                lf = " / "
+
+        if new_utf16:
+            lf=lf.encode("utf-16-le").decode("utf-16-le")
+
+        #merge (or swap) text
+        if just_swap:
+            new_s = s2
+        else:
+            new_s = s1+lf+s2
+        
+        if (not self.is_subtitle) and TextUexp.is_same_word(s1, s2):
+            new_s=s1
+
+        return new_s, new_utf16
+
+
     def merge_text(self, text_object_list, just_swap=False):
         if len(self.text_object_list)!=len(text_object_list):
             raise RuntimeError("Merge failed. Number of objects does not match.")
-
+        
         i=0
         for t2 in text_object_list:
-            
-            utf16_2 = t2["text"]["utf-16"]
-            text_2 = t2["text"]["str"]
-            if text_2=="" or t2["sep_type"]==2:
-                i+=1
-                continue
+
+            utf16_list_2 = t2["text"]["utf-16"]
+            text_list_2 = t2["text"]["str"]
 
             t = self.text_object_list[i]
-            utf16 = t["text"]["utf-16"]
-            text = t["text"]["str"]
-            if text=="" or t["sep_type"]==2:
+            utf16_list = t["text"]["utf-16"]
+            text_list = t["text"]["str"]
+
+            if len(text_list)==0 or len(text_list_2)==0:
                 i+=1
                 continue
 
-            #check id
+            #check format
             if t["id"]["str"]!=t2["id"]["str"]:
-                raise RuntimeError("Merge failed. Structure is not the same.")
+                raise RuntimeError("Merge failed. The structure is not the same.")
+            
+            new_utf16_list=[]
+            new_text_list=[]
+            for j in range(len(text_list)):
+                if j>=len(text_list_2):
+                    break
                 
-            #encoding
-            new_utf16=utf16 or utf16_2
-            if utf16 and (not utf16_2):
-                text_2=text_2.encode("utf-16-le").decode("utf-16-le")
-            if (not utf16) and utf16_2:
-                text=text.encode("utf-16-le").decode("utf-16-le")
-            lf = "\r\n"
-            if new_utf16:
-                lf=lf.encode("utf-16-le").decode("utf-16-le")
+                text=text_list[j]
+                utf16=utf16_list[j]
+                text_2=text_list_2[j]
+                utf16_2=utf16_list_2[j]
+                new_text, new_utf16 = self.merge_string(text, utf16, text_2, utf16_2, (not self.is_subtitle), just_swap)
+                #encoding
+                
+                new_text_list.append(new_text)
+                new_utf16_list.append(new_utf16)
 
-            #merge (or swap) text
-            if just_swap:
-                new_text = text_2
-            else:
-                new_text = text+lf+text_2
-
-            self.text_object_list[i]["text"]={"utf-16":new_utf16, "str":new_text}
+            self.text_object_list[i]["text"]={"utf-16":new_utf16_list, "str":new_text_list}
+            
+            talker1 = t["talker"]["str"]
+            talker2 = t2["talker"]["str"]
+            if talker1!="" and talker2!="":
+                new_talker, new_utf16 = self.merge_string(talker1, t["talker"]["utf-16"], talker2, t2["talker"]["utf-16"], True, just_swap)
+                self.text_object_list[i]["talker"]={"utf-16":new_utf16, "str":new_talker}
             i+=1
 
     def str_to_bin(utf16, str):
@@ -178,18 +229,24 @@ class TextUexp:
         for t in self.text_object_list:
             id = t["id"]
             data += TextUexp.str_to_bin(id["utf-16"], id["str"])
-            text = t["text"]
-            if text["str"]=="":
+            text_list = t["text"]["str"]
+            text_utf16_list = t["text"]["utf-16"]
+            sep_type_list = t["sep_type"]
+            if len(text_list)==0:
                 data += TextUexp.PAD
+                if len(sep_type_list)>0:
+                    data +=b"\x01\x00\x00\x00"
+                    data += TextUexp.SEP[sep_type_list[0]]
             else:
-                data += TextUexp.str_to_bin(text["utf-16"], text["str"])
-            if t["sep_type"]>=0:
-                data += TextUexp.SEP[t["sep_type"]]
-            if t["sep_type"]==2:
-                text2 = t["text2"]
-                data += TextUexp.str_to_bin(text2["utf-16"], text2["str"])
-                if t["esep"]:
-                    data += TextUexp.ESEP
+                
+                data += TextUexp.str_to_bin(text_utf16_list[0], text_list[0])
+                if len(sep_type_list)>0:
+                    data += len(text_list).to_bytes(4, byteorder="little")
+                    data += TextUexp.SEP[sep_type_list[0]]
+
+                for i in range(len(text_list)-1):
+                    data += TextUexp.str_to_bin(text_utf16_list[i+1], text_list[i+1])
+                    data += TextUexp.SEP[sep_type_list[i+1]]
 
             talker = t["talker"]
             if talker["str"]=="":
@@ -218,23 +275,33 @@ class TextUexp:
     def save_as_txt(self, txt_file):
         txt_data = []
         for t in self.text_object_list:
-            text = t["text"]["str"]
+            text_list = t["text"]["str"]
+            text_utf16_list = t["text"]["utf-16"]
             talker = t["talker"]["str"]
 
-            if text==0 or talker=="":
+            if len(text_list)==0:
                 continue
 
-            if t["text"]["utf-16"]:
-                text = text.encode("utf-8").decode("utf-8")
-            text = text.split("\r\n")
+            if talker=="":
+                talker="***"
+
             if t["talker"]["utf-16"]:
                 talker = talker.encode("utf-8").decode("utf-8")
-            
+                
             txt_data.append(talker)
-            for l in text:
-                if l=="":
-                    continue
-                txt_data.append("   "+l)
+
+
+            for i in range(len(text_list)):
+                text = text_list[i]
+                if text_utf16_list[i]:
+                    text = text.encode("utf-8").decode("utf-8")
+                text = text.split("\r\n")
+                
+                for l in text:
+                    if l=="":
+                        continue
+                    txt_data.append("   "+l)
+
             txt_data.append("")
 
         if len(txt_data)==0:

@@ -13,6 +13,7 @@ def get_args():
     parser.add_argument('--save_as_txt', action='store_true', help="Export subtitle data as txt")
     parser.add_argument('--vorbose', action='store_true', help="")
     parser.add_argument('--just_swap', action='store_true', help="")
+    parser.add_argument('--all', action='store_true', help="Edit all text data in the game")
 
     #parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
@@ -39,7 +40,7 @@ if __name__=="__main__":
 
     mod_name = args.mod_name
     if mod_name=="dualsub_mod_l1_l2":
-        mod_name="dual"*(not just_swap)+"swap"*just_swap+"sub_mod_"+lang1+"_"+lang2
+        mod_name="dual"*(not just_swap)+"swap"*just_swap+"sub_mod_"+lang1+"_"+lang2+"_all"*args.all
 
     TEXT_DIR = "End/Content/GameContents/Text"
 
@@ -67,7 +68,7 @@ if __name__=="__main__":
 
     file_list = util.get_filelist(lang1_dir, extention="uexp")
     for f in file_list:
-        if f=="BattleTest_TxtRes.uexp" or f=="Debug_Battle_TxtRes.uexp":
+        if not args.all and not f[0].isdecimal() :
             break
         print(f)
 

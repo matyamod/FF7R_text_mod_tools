@@ -3,10 +3,13 @@ build
 dist
 dualsub*
 json
+txt
 *test*
 py*
 *.spec
 *.py
-!src/*py
+!src/*.py
 *.exe
-txt
+*.sh
+*.txt
+*.pak
