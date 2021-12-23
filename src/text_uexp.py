@@ -5,9 +5,10 @@ import warnings
 
 class TextUexp:
     HEAD = b"\x00\x03\x03\x00"
-    PAD = b"\x00\x00\x00\x00"
-    FOOT = b"\xC1\x83\x2A\x9E"
+    PAD = b"\x00\x00\x00\x00" #Null
+    FOOT = b"\xC1\x83\x2A\x9E" #Unreal Header
     
+    #I don't know how these byte data works, but texts are separated by them 
     SEP  = [b"\x04\x00\x00\x00\x00\x00\x00\x00", \
             b"\x03\x00\x00\x00\x00\x00\x00\x00", \
             b"\x05\x00\x00\x00\x00\x00\x00\x00", \
@@ -16,6 +17,7 @@ class TextUexp:
 
     LANG_LIST = ["BR", "CN", "DE", "ES", "FR", "IT", "JP", "KR", "MX", "TW", "US"]
 
+    #pop string data
     def pop_str(bin):
         num = int.from_bytes(bin[0:4], "little", signed=True)
         if num<0:
@@ -27,41 +29,44 @@ class TextUexp:
         str = bin[4:sep_id-(utf16+1)].decode("utf-16-le"*utf16+"ascii"*(not utf16))
         return utf16, str, bin[sep_id:]
 
+    #load .uexp file and extract text data
     def __init__(self, uexp_file, vorbose=False):
         if uexp_file[-5:]!=".uexp":
             raise RuntimeError("file extension error (not .uexp)")
 
         self.is_subtitle=os.path.basename(uexp_file)[:3].isdecimal()
 
-
+        #load file
         self.file=uexp_file
         bin = util.read_binary(self.file)
         self.header = bin[0:17]
         self.lang = self.header[6:8].decode("ascii") #00 00 55 53 (US)
 
-        #checks format
+        #check format
         if self.header[0:4] != TextUexp.HEAD \
             or self.header[8:13] != TextUexp.PAD+b"\x00" \
             or self.lang not in TextUexp.LANG_LIST:
             raise RuntimeError("format error 1: Not subtitle uexp")
 
         object_num = int.from_bytes(self.header[13:17], "little", signed=True)
-        
-        data = bin[17:]
-        
-        self.text_object_list = []
 
+        #extract text data
+        data = bin[17:]
+        self.text_object_list = []
         while (data != TextUexp.FOOT):
-            if len(data)<4:
+            if len(data)<4: #Not found footer
                 raise RuntimeError("format error 2: Not uexp")
+
+            #get id string
             id_utf16, id, data = TextUexp.pop_str(data)
             if id[0]!="$":
                 raise RuntimeError("format error 3: Failed to parse")
 
+            #get text 1 (may be subtitle text)
             if data[0:4]==TextUexp.PAD:
                 text_list=[]
                 text_utf16_list=[]
-                data = data[4:]    
+                data = data[4:]
             else:
                 text_utf16, text, data = TextUexp.pop_str(data)
                 text_list=[text]
@@ -82,7 +87,7 @@ class TextUexp:
                 sep_type_list=[]
                 text_num=1
 
-            
+            #get other texts (sometimes, non subtitle data has more texts.)            
             if text_num>=2:
                 for i in range(text_num-1):
                     text_utf16, text, data = TextUexp.pop_str(data)
@@ -99,6 +104,7 @@ class TextUexp:
                 if sep_type!=4:
                     raise RuntimeError("format error 6: Failed to parse")
 
+            #get talker's name
             if data[0:4]==TextUexp.PAD:
                 talker_utf16=False
                 talker=""
@@ -106,20 +112,22 @@ class TextUexp:
             else:
                 talker_utf16, talker, data = TextUexp.pop_str(data)
             
+            #add extracted data to the list
             text_object = {
                 "id": {"utf-16": id_utf16, "str":id },
                 "text":{"utf-16":text_utf16_list, "str":text_list},
                 "sep_type":sep_type_list,
                 "talker":{"utf-16":talker_utf16, "str":talker}
                 }
+            self.text_object_list.append(text_object)
 
+            #log
             if vorbose:
                 print(id)
                 print(text)
                 print(talker)
-            
-            self.text_object_list.append(text_object)
         
+        #check the format
         if len(self.text_object_list)!=object_num:
             raise RuntimeError("Parse failed. Number of objects does not match.")
 
@@ -133,21 +141,27 @@ class TextUexp:
         with open(file, 'w') as f:
             json.dump(json_data, f, indent=4)
 
+    #Whether 2 strings are the same or not.
+    #it consider letter case and some conjugations of verbs.
     def is_same_word(s1,s2):
         m = min(len(s1), len(s2))
         if m==1:
             return s1.lower()==s2.lower()
         return s1[:m-1].lower()==s2[:m-1].lower()
 
+    #merge single text.
     def merge_string(self, s1, utf16_1, s2, utf16_2, no_lf, just_swap):
         new_utf16=utf16_1 or utf16_2
+
+        #encoding
         if utf16_1 and (not utf16_2):
             s2=s2.encode("utf-16-le").decode("utf-16-le")
         if (not utf16_1) and utf16_2:
             s1=s1.encode("utf-16-le").decode("utf-16-le")
-        lf = "\r\n"
 
-        if (no_lf) and (not lf in s1) and (not lf in s2):
+        #insert line feed
+        lf = "\r\n"
+        if no_lf and (not lf in s1) and (not lf in s2):#for non subtitle data
                 lf = " / "
 
         if new_utf16:
@@ -198,13 +212,13 @@ class TextUexp:
                 text_2=text_list_2[j]
                 utf16_2=utf16_list_2[j]
                 new_text, new_utf16 = self.merge_string(text, utf16, text_2, utf16_2, (not self.is_subtitle), just_swap)
-                #encoding
                 
                 new_text_list.append(new_text)
                 new_utf16_list.append(new_utf16)
 
             self.text_object_list[i]["text"]={"utf-16":new_utf16_list, "str":new_text_list}
             
+            #merge talker's name
             talker1 = t["talker"]["str"]
             talker2 = t2["talker"]["str"]
             if talker1!="" and talker2!="":
@@ -227,8 +241,11 @@ class TextUexp:
 
         data = self.header
         for t in self.text_object_list:
+            #add id data
             id = t["id"]
             data += TextUexp.str_to_bin(id["utf-16"], id["str"])
+
+            #add text 1 data (may be subtitle text)
             text_list = t["text"]["str"]
             text_utf16_list = t["text"]["utf-16"]
             sep_type_list = t["sep_type"]
@@ -243,19 +260,24 @@ class TextUexp:
                 if len(sep_type_list)>0:
                     data += len(text_list).to_bytes(4, byteorder="little")
                     data += TextUexp.SEP[sep_type_list[0]]
-
+                
+                #add other text data
                 for i in range(len(text_list)-1):
                     data += TextUexp.str_to_bin(text_utf16_list[i+1], text_list[i+1])
                     data += TextUexp.SEP[sep_type_list[i+1]]
 
+            #add talker's name
             talker = t["talker"]
             if talker["str"]=="":
                 data += TextUexp.PAD
             else:
                 data += TextUexp.str_to_bin(talker["utf-16"], talker["str"])
         data += TextUexp.FOOT
+
+        #write a new .uexp file
         util.write_binary(file, data)
 
+        #write a new .uasset file
         new_uexp_size = os.path.getsize(file)-4
         new_uexp_size_bin=new_uexp_size.to_bytes(4, 'little', signed=True)
 
