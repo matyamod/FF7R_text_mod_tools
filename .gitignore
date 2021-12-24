@@ -2,6 +2,7 @@ __pycache__
 build
 dist
 dualsub*
+subtitle*
 json
 txt
 new_uexp

@@ -49,7 +49,7 @@ if __name__=="__main__":
 
     def make_dualsub(uexp, lang, text_object_list):
         #Merge subtitles
-        uexp.merge_text(text_object_list, just_swap=args.just_swap)
+        uexp.merge_text(text_object_list, just_swap=args.just_swap, merge_talker=args.all)
 
         #Export subtitle data as json
         if args.save_as_json:

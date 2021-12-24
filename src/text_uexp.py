@@ -175,11 +175,12 @@ class TextUexp:
         
         if (not self.is_subtitle) and TextUexp.is_same_word(s1, s2):
             new_s=s1
+            new_utf16=utf16_1
 
         return new_s, new_utf16
 
 
-    def merge_text(self, text_object_list, just_swap=False):
+    def merge_text(self, text_object_list, just_swap=False, merge_talker=False):
         if len(self.text_object_list)!=len(text_object_list):
             raise RuntimeError("Merge failed. Number of objects does not match.")
         
@@ -211,6 +212,7 @@ class TextUexp:
                 utf16=utf16_list[j]
                 text_2=text_list_2[j]
                 utf16_2=utf16_list_2[j]
+                
                 new_text, new_utf16 = self.merge_string(text, utf16, text_2, utf16_2, (not self.is_subtitle), just_swap)
                 
                 new_text_list.append(new_text)
@@ -219,11 +221,12 @@ class TextUexp:
             self.text_object_list[i]["text"]={"utf-16":new_utf16_list, "str":new_text_list}
             
             #merge talker's name
-            talker1 = t["talker"]["str"]
-            talker2 = t2["talker"]["str"]
-            if talker1!="" and talker2!="":
-                new_talker, new_utf16 = self.merge_string(talker1, t["talker"]["utf-16"], talker2, t2["talker"]["utf-16"], True, just_swap)
-                self.text_object_list[i]["talker"]={"utf-16":new_utf16, "str":new_talker}
+            if merge_talker:
+                talker1 = t["talker"]["str"]
+                talker2 = t2["talker"]["str"]
+                if talker1!="" and talker2!="":
+                    new_talker, new_utf16 = self.merge_string(talker1, t["talker"]["utf-16"], talker2, t2["talker"]["utf-16"], True, just_swap)
+                    self.text_object_list[i]["talker"]={"utf-16":new_utf16, "str":new_talker}
             i+=1
 
     def str_to_bin(utf16, str):
