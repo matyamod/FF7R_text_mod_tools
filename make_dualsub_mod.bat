@@ -1,3 +1,5 @@
+@echo off
+
 rem PAK_DIR: where unpacked files are
 
 set PAK_DIR=D:\quickbms\pakchunk0_s24-WindowsNoEditor

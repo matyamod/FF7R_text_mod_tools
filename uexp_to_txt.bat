@@ -1,3 +1,5 @@
+@echo off
+
 REM Drop uexp file onto this (uexp_to_txt.bat)
 
 REM New .txt will be generated in FF7R_text_mod_tools\txt

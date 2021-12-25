@@ -1,3 +1,5 @@
+@echo off
+
 REM Place a josn file into FF7R_text_mod_tools\json
 REM and drop a uexp file onto this (json_to_uexp.bat)
 
