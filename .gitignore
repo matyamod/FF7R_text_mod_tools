@@ -2,6 +2,7 @@ __pycache__
 build
 dist
 dualsub*
+swapsub*
 subtitle*
 json
 txt
@@ -15,3 +16,4 @@ py*
 *.sh
 *.txt
 *.pak
+*.uexp
