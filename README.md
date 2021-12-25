@@ -49,7 +49,9 @@ resize_subtitle_box.exe uexp [options]
 - --height= : height of subtitle wedget
 
 e.g. width=930, height=500<br>
-<img src="https://user-images.githubusercontent.com/69258547/147376970-76abaa35-dfaa-4b49-94ad-a7a3420c871e.png" alt="drawing" width="800"/>
+<img src="https://user-images.githubusercontent.com/69258547/147376970-76abaa35-dfaa-4b49-94ad-a7a3420c871e.png" alt="drawing" width="600"/>
+<br>
+If you run `resize_subtitle_box.exe`, `new_Subtitle00.uexp` will be generated .
 
 ## .uexp to .json
 `uexp_to_json.exe` is a tool for exporting text data as .json.<br>
