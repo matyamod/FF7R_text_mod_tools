@@ -2,6 +2,8 @@ import os,argparse
 import file_util as util
 from text_uexp import TextUexp
 
+ver = "1.3"
+
 def get_args():
     parser = argparse.ArgumentParser() 
     parser.add_argument('uexp', help = "")
@@ -17,6 +19,15 @@ if __name__=="__main__":
     
     #Get args
     args=get_args()
+
+    if args.vorbose:
+        print("FF7R Text Mod Tools ver "+ver+" by Matyalatte")
+
+    print("uexp: "+args.uexp)
+
+    if args.vorbose:
+        print("--mode: "+args.mode)
+        print("--out_dir: "+args.out_dir)
     
     def uexp_to_json(args):
         uexp_file = args.uexp
@@ -30,6 +41,9 @@ if __name__=="__main__":
         uexp.save_as_json(os.path.join(out_dir, os.path.basename(uexp_file)[:-4]+"json"))
 
     def json_to_uexp(args):
+        if args.vorbose:
+            print("--json: "+args.json)
+
         if args.json is None:
             raise RuntimeError("Specify a json file by '--json' argument.")
 
@@ -69,4 +83,6 @@ if __name__=="__main__":
         uexp_to_txt(args)
     else:
         raise RuntimeError("Unsupported mode. ({})".format(args.mode))
+
+    print("Done!")
 

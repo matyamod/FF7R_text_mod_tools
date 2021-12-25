@@ -34,7 +34,7 @@ class TextUexp:
         if uexp_file[-5:]!=".uexp":
             raise RuntimeError("file extension error (not .uexp)")
 
-        self.is_subtitle=os.path.basename(uexp_file)[:3].isdecimal()
+        self.is_subtitle_file=os.path.basename(uexp_file)[:3].isdecimal()
 
         #load file
         self.file=uexp_file
@@ -52,6 +52,7 @@ class TextUexp:
 
         #extract text data
         data = bin[17:]
+
         self.text_object_list = []
         while (data != TextUexp.FOOT):
             if len(data)<4: #Not found footer
@@ -111,7 +112,7 @@ class TextUexp:
                 data = data[4:]
             else:
                 talker_utf16, talker, data = TextUexp.pop_str(data)
-            
+
             #add extracted data to the list
             text_object = {
                 "id": {"utf-16": id_utf16, "str":id },
@@ -150,7 +151,7 @@ class TextUexp:
         return s1[:m-1].lower()==s2[:m-1].lower()
 
     #merge single text.
-    def merge_string(self, s1, utf16_1, s2, utf16_2, no_lf, just_swap):
+    def merge_string(self, s1, utf16_1, s2, utf16_2, not_subtitle, just_swap):
         new_utf16=utf16_1 or utf16_2
 
         #encoding
@@ -161,7 +162,7 @@ class TextUexp:
 
         #insert line feed
         lf = "\r\n"
-        if no_lf and (not lf in s1) and (not lf in s2):#for non subtitle data
+        if not_subtitle and not (lf in s1 or lf in s2):#for non subtitle data
                 lf = " / "
 
         if new_utf16:
@@ -173,61 +174,65 @@ class TextUexp:
         else:
             new_s = s1+lf+s2
         
-        if (not self.is_subtitle) and TextUexp.is_same_word(s1, s2):
+        if (not self.is_subtitle_file) and TextUexp.is_same_word(s1, s2):
             new_s=s1
             new_utf16=utf16_1
 
         return new_s, new_utf16
 
 
-    def merge_text(self, text_object_list, just_swap=False, merge_talker=False):
+    def merge_text(self, text_object_list, just_swap=False, mod_all=False):
         if len(self.text_object_list)!=len(text_object_list):
             raise RuntimeError("Merge failed. Number of objects does not match.")
         
         i=0
-        for t2 in text_object_list:
+        for t, t2 in zip(self.text_object_list, text_object_list):
 
+            utf16_list = t["text"]["utf-16"]
+            text_list = t["text"]["str"]
+            
             utf16_list_2 = t2["text"]["utf-16"]
             text_list_2 = t2["text"]["str"]
 
-            t = self.text_object_list[i]
-            utf16_list = t["text"]["utf-16"]
-            text_list = t["text"]["str"]
-
             if len(text_list)==0 or len(text_list_2)==0:
-                i+=1
                 continue
 
             #check format
+            id = t["id"]["str"]
             if t["id"]["str"]!=t2["id"]["str"]:
                 raise RuntimeError("Merge failed. The structure is not the same.")
             
-            new_utf16_list=[]
-            new_text_list=[]
-            for j in range(len(text_list)):
-                if j>=len(text_list_2):
+            talker1 = t["talker"]["str"]
+            talker2 = t2["talker"]["str"]
+            if self.is_subtitle_file:
+                not_subtitle = id[0:6]=="$level" or (id[-3]!="0" and id[-12:-8]=="_900" and id[-7:-3]=="_cut" )
+            else:
+                not_subtitle = not (t["sep_type"]==[1] and talker1!="")
+
+            if not_subtitle and not mod_all:
+                continue
+
+            i=0
+            for text, utf16 in zip(text_list, utf16_list):
+                if i>=len(text_list_2):
+                    i+=1
                     break
                 
-                text=text_list[j]
-                utf16=utf16_list[j]
-                text_2=text_list_2[j]
-                utf16_2=utf16_list_2[j]
+                text_2=text_list_2[i]
+                utf16_2=utf16_list_2[i]
+                new_text, new_utf16 = self.merge_string(text, utf16, text_2, utf16_2, not_subtitle, just_swap)
                 
-                new_text, new_utf16 = self.merge_string(text, utf16, text_2, utf16_2, (not self.is_subtitle), just_swap)
-                
-                new_text_list.append(new_text)
-                new_utf16_list.append(new_utf16)
+                text_list[i]=new_text
+                utf16_list[i]=new_utf16
+                i+=1
 
-            self.text_object_list[i]["text"]={"utf-16":new_utf16_list, "str":new_text_list}
-            
             #merge talker's name
-            if merge_talker:
-                talker1 = t["talker"]["str"]
-                talker2 = t2["talker"]["str"]
+            if mod_all:
+                #talker1 = t["talker"]["str"]
+                #talker2 = t2["talker"]["str"]
                 if talker1!="" and talker2!="":
                     new_talker, new_utf16 = self.merge_string(talker1, t["talker"]["utf-16"], talker2, t2["talker"]["utf-16"], True, just_swap)
-                    self.text_object_list[i]["talker"]={"utf-16":new_utf16, "str":new_talker}
-            i+=1
+                    t["talker"]={"utf-16":new_utf16, "str":new_talker}
 
     def str_to_bin(utf16, str):
         num = len(str)+1
@@ -295,7 +300,7 @@ class TextUexp:
         for i in range(len(self.text_object_list)):
             text_object_list2.append(uexp_as_json[str(i)])
         
-        self.merge_text(text_object_list2, just_swap=True)
+        self.merge_text(text_object_list2, just_swap=True, mod_all=all)
 
     def save_as_txt(self, txt_file):
         txt_data = []
@@ -316,9 +321,8 @@ class TextUexp:
             txt_data.append(talker)
 
 
-            for i in range(len(text_list)):
-                text = text_list[i]
-                if text_utf16_list[i]:
+            for text, utf16 in zip(text_list, text_utf16_list):
+                if utf16:
                     text = text.encode("utf-8").decode("utf-8")
                 text = text.split("\r\n")
                 

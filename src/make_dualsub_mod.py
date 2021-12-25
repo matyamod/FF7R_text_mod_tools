@@ -3,8 +3,10 @@ import file_util as util
 from text_uexp import TextUexp
 from copy import deepcopy
 
+ver = "1.3"
+
 def get_args():
-    parser = argparse.ArgumentParser() 
+    parser = argparse.ArgumentParser()
     parser.add_argument('pak_dir', help = "where you unpaked .pak file.")
     parser.add_argument('lang1', help = "BR, CN, DE, ES, FR, IT, JP, KR, MX, TW, US")
     parser.add_argument('lang2', help = "BR, CN, DE, ES, FR, IT, JP, KR, MX, TW, US")
@@ -20,13 +22,16 @@ def get_args():
     return args
 
 if __name__=="__main__":
-    
+    print("FF7R Text Mod Tools ver "+ver+" by Matyalatte")
+
     #Get args
     args=get_args()
     pak_dir = args.pak_dir
     lang1 = args.lang1
     lang2 = args.lang2
     just_swap = args.just_swap
+    print("lang1: "+args.lang1)
+    print("lang2: "+args.lang2)
     
     #Check language
     if lang1==lang2:
@@ -42,6 +47,8 @@ if __name__=="__main__":
     if mod_name=="dualsub_mod_l1_l2":
         mod_name="dual"*(not just_swap)+"swap"*just_swap+"sub_mod_"+lang1+"_"+lang2+"_all"*args.all
 
+    print("mod name: "+mod_name)
+
     TEXT_DIR = "End/Content/GameContents/Text"
 
     lang1_dir = os.path.join(pak_dir,TEXT_DIR, lang1)
@@ -49,7 +56,7 @@ if __name__=="__main__":
 
     def make_dualsub(uexp, lang, text_object_list):
         #Merge subtitles
-        uexp.merge_text(text_object_list, just_swap=args.just_swap, merge_talker=args.all)
+        uexp.merge_text(text_object_list, just_swap=args.just_swap, mod_all=args.all)
 
         #Export subtitle data as json
         if args.save_as_json:
@@ -68,8 +75,6 @@ if __name__=="__main__":
 
     file_list = util.get_filelist(lang1_dir, extention="uexp")
     for f in file_list:
-        if not args.all and not f[0].isdecimal() :
-            break
         print(f)
 
         #Load uexp
@@ -88,4 +93,6 @@ if __name__=="__main__":
 
         make_dualsub(uexp_lang1, lang1, lang2_text_object_list)
         make_dualsub(uexp_lang2, lang2, lang1_text_object_list)
+
+    print("Done!")
 
