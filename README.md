@@ -4,7 +4,7 @@ Text modding tools for FF7R (Final Fantasy VII Remake)<br>
 
 <img src = "image/ff7r_dualsub_sample.jpg" width=600>
 
-There are 5 functions in my tools.
+There are 6 functions in my tools.
 
 - Make dualsub mod: Merges subtitle data between 2 languages.
 - Make swapsub mod: Swaps subtitle data between 2 languages.
@@ -44,9 +44,12 @@ If you run `make_dualsub_mod.exe` with `--just_swap` otption, subtitle data will
 ```
 resize_subtitle_box.exe uexp [options]
 ```
-- uexp: uexp file (e.g. `D:\quickbms\pakchunk0_s24-WindowsNoEditor\End\Content\GameContents\Text\US\010-MAKO1_TxtRes.uexp`)
+- uexp: where `Subtitle00.uexp` is (e.g. `D:\quickbms\pakchunk0_s22-WindowsNoEditor.pak\Menu\Resident\Cinema\Subtitle00.uexp`)
 - --width= : width of subtitle wedget
 - --height= : height of subtitle wedget
+
+e.g. width=930, height=500<br>
+<img src="https://user-images.githubusercontent.com/69258547/147376970-76abaa35-dfaa-4b49-94ad-a7a3420c871e.png" alt="drawing" width="800"/>
 
 ## .uexp to .json
 `uexp_to_json.exe` is a tool for exporting text data as .json.<br>
