@@ -1,4 +1,4 @@
-# FF7R Text Mod Tools ver 1.2
+# FF7R Text Mod Tools ver 1.3
 Text modding tools for FF7R (Final Fantasy VII Remake)<br>
 
 
@@ -8,6 +8,7 @@ There are 5 functions in my tools.
 
 - Make dualsub mod: Merges subtitle data between 2 languages.
 - Make swapsub mod: Swaps subtitle data between 2 languages.
+- Resize subtitle box: Resizes subtitle wedget.
 - .uexp to .json: Exports text data as .json.
 - .json to .uexp: Swaps text data with .json.
 - .uexp to .txt: Exports text data as .txt.
@@ -37,6 +38,15 @@ If you run `make_dualsub_mod.exe`, a mod folder (like `.\dualsub_mod_US_JP`) wil
 ## Make Swapsub Mod
 If you run `make_dualsub_mod.exe` with `--just_swap` otption, subtitle data will be swapped between 2 languages.
 
+## Resize subtitle box
+`resize_subtitle_box.exe` is a tool for resizeing subtitle wedget.
+### Usage
+```
+resize_subtitle_box.exe uexp [options]
+```
+- uexp: uexp file (e.g. `D:\quickbms\pakchunk0_s24-WindowsNoEditor\End\Content\GameContents\Text\US\010-MAKO1_TxtRes.uexp`)
+- --width= : width of subtitle wedget
+- --height= : height of subtitle wedget
 
 ## .uexp to .json
 `uexp_to_json.exe` is a tool for exporting text data as .json.<br>
