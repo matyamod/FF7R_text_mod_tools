@@ -17,6 +17,8 @@ class TextUexp:
 
     LANG_LIST = ["BR", "CN", "DE", "ES", "FR", "IT", "JP", "KR", "MX", "TW", "US"]
 
+    VERSION="1.3.1"
+
     #pop string data
     def pop_str(bin):
         num = int.from_bytes(bin[0:4], "little", signed=True)
@@ -40,7 +42,7 @@ class TextUexp:
         self.file=uexp_file
         bin = util.read_binary(self.file)
         self.header = bin[0:17]
-        self.lang = self.header[6:8].decode("ascii") #00 00 55 53 (US)
+        self.lang = self.header[6:8].decode("ascii") #e.g. 55 53 (US)
 
         #check format
         if self.header[0:4] != TextUexp.HEAD \
@@ -59,7 +61,7 @@ class TextUexp:
                 raise RuntimeError("format error 2: Not uexp")
 
             #get id string
-            id_utf16, id, data = TextUexp.pop_str(data)
+            _, id, data = TextUexp.pop_str(data)
             if id[0]!="$":
                 raise RuntimeError("format error 3: Failed to parse")
 
@@ -115,7 +117,7 @@ class TextUexp:
 
             #add extracted data to the list
             text_object = {
-                "id": {"utf-16": id_utf16, "str":id },
+                "id": id,
                 "text":{"utf-16":text_utf16_list, "str":text_list},
                 "sep_type":sep_type_list,
                 "talker":{"utf-16":talker_utf16, "str":talker}
@@ -134,10 +136,9 @@ class TextUexp:
 
     def save_as_json(self, file):
         json_data = {}
-        i=0
-        for t in self.text_object_list:
-            json_data[i]=t
-            i+=1
+        json_data["data"]=self.text_object_list
+        meta = {"tool":"FF7R text mod tools", "version":TextUexp.VERSION}
+        json_data["meta"]=meta
 
         with open(file, 'w') as f:
             json.dump(json_data, f, indent=4)
@@ -198,8 +199,8 @@ class TextUexp:
                 continue
 
             #check format
-            id = t["id"]["str"]
-            if t["id"]["str"]!=t2["id"]["str"]:
+            id = t["id"]
+            if t["id"]!=t2["id"]:
                 raise RuntimeError("Merge failed. The structure is not the same.")
             
             talker1 = t["talker"]["str"]
@@ -251,7 +252,7 @@ class TextUexp:
         for t in self.text_object_list:
             #add id data
             id = t["id"]
-            data += TextUexp.str_to_bin(id["utf-16"], id["str"])
+            data += TextUexp.str_to_bin(False, id)
 
             #add text 1 data (may be subtitle text)
             text_list = t["text"]["str"]
@@ -296,9 +297,17 @@ class TextUexp:
         with open(json_file) as f:
             uexp_as_json = json.load(f)
         
-        text_object_list2=[]
-        for i in range(len(self.text_object_list)):
-            text_object_list2.append(uexp_as_json[str(i)])
+        if uexp_as_json.has_key("meta"):#ver1.3.1
+            meta = uexp_as_json["meta"]
+            text_object_list2=uexp_as_json["data"]
+            
+        else:#ver1.3
+            text_object_list2=[]
+            for i in range(len(self.text_object_list)):
+                t = uexp_as_json[str(i)]
+                t["id"]=t["id"]["str"]
+                text_object_list2.append(t)
+            
         
         self.merge_text(text_object_list2, just_swap=True, mod_all=all)
 
