@@ -2,7 +2,7 @@ import os,argparse
 import file_util as util
 from text_uexp import TextUexp
 
-ver = "1.3"
+ver = TextUexp.VERSION
 
 def get_args():
     parser = argparse.ArgumentParser() 
