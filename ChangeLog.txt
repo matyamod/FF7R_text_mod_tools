@@ -1,0 +1,17 @@
+FF7R Text Mod Tools Change Log
+
+ver1.3.1
+-change json format. (compatible with old versions.)
+-bug fix
+
+ver1.3
+-add resize_subtitle_box.exe
+-bug fix
+
+ver1.2
+-add support for all text data (Resident_TxtRes.uexp)
+-add --all option to make_dualsub_mod.exe
+
+ver1.1
+-remove json_to_uexp.exe
+-add json2uexp and uexp2txt options to uexp_to_json.exe

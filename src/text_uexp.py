@@ -297,7 +297,7 @@ class TextUexp:
         with open(json_file) as f:
             uexp_as_json = json.load(f)
         
-        if uexp_as_json.has_key("meta"):#ver1.3.1
+        if "meta" in uexp_as_json:#ver1.3.1
             meta = uexp_as_json["meta"]
             text_object_list2=uexp_as_json["data"]
             

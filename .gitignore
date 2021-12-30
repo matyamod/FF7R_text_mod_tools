@@ -15,5 +15,6 @@ py*
 *.exe
 *.sh
 *.txt
+!ChangeLog.txt
 *.pak
 *.uexp

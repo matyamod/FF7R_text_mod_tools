@@ -32,6 +32,8 @@ if __name__=="__main__":
     def uexp_to_json(args):
         uexp_file = args.uexp
         out_dir = args.out_dir
+        if out_dir is None:
+            out_dir="json"
         
         #Load uexp
         uexp = TextUexp(uexp_file, args.vorbose)
@@ -51,7 +53,7 @@ if __name__=="__main__":
         json_file = args.json
         out_dir = args.out_dir
         if out_dir is None:
-            out_dir="json"
+            out_dir="new_uexp"
         
         #Load uexp
         uexp = TextUexp(uexp_file, args.vorbose)
