@@ -2,7 +2,9 @@ FF7R Text Mod Tools Change Log
 
 ver1.3.3
 -use utf-8 for json encoding. (compatible with old versions.)
--bug fix
+-bugfix
+ver.1.3.3 will export json files in UTF-8.
+It makes it easier to edit text data.
 
 ver1.3.2
 -optimize i/o functions
