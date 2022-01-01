@@ -1,7 +1,6 @@
 import os
 import file_util as util
 import json
-import warnings
 
 class TextUexp:
     HEAD = b"\x00\x03\x03\x00"
@@ -17,31 +16,37 @@ class TextUexp:
 
     LANG_LIST = ["BR", "CN", "DE", "ES", "FR", "IT", "JP", "KR", "MX", "TW", "US"]
 
-    VERSION="1.3.1"
+    VERSION="1.3.2"
 
-    #pop string data
-    def pop_str(bin):
-        num = int.from_bytes(bin[0:4], "little", signed=True)
-        if num<0:
+    #read string data
+    def read_str(file):
+        num_byte = file.read(4)
+        num = int.from_bytes(num_byte, "little", signed=True)
+
+        if num==0:
+            return None, None
+        elif num<0:
             num = -num
             utf16 = True
         else:
             utf16 = False
-        sep_id = 4+num*(utf16+1)
-        str = bin[4:sep_id-(utf16+1)].decode("utf-16-le"*utf16+"ascii"*(not utf16))
-        return utf16, str, bin[sep_id:]
+        sep_id = num*(utf16+1)
+
+        string = file.read(sep_id-(utf16+1)).decode("utf-16-le"*utf16+"ascii"*(not utf16))
+        file.read(utf16+1)
+        return utf16, string
 
     #load .uexp file and extract text data
-    def __init__(self, uexp_file, vorbose=False):
-        if uexp_file[-5:]!=".uexp":
+    def __init__(self, uexp_file_name, vorbose=False):
+        if uexp_file_name[-5:]!=".uexp":
             raise RuntimeError("file extension error (not .uexp)")
 
-        self.is_subtitle_file=os.path.basename(uexp_file)[:3].isdecimal()
+        self.is_subtitle_file=os.path.basename(uexp_file_name)[:3].isdecimal()
 
         #load file
-        self.file=uexp_file
-        bin = util.read_binary(self.file)
-        self.header = bin[0:17]
+        self.file_name=uexp_file_name
+        file = open(self.file_name, 'rb')
+        self.header = file.read(17)
         self.lang = self.header[6:8].decode("ascii") #e.g. 55 53 (US)
 
         #check format
@@ -53,50 +58,44 @@ class TextUexp:
         object_num = int.from_bytes(self.header[13:17], "little", signed=True)
 
         #extract text data
-        data = bin[17:]
-
+        file_size = os.path.getsize(self.file_name)-4
         self.text_object_list = []
-        while (data != TextUexp.FOOT):
-            if len(data)<4: #Not found footer
-                raise RuntimeError("format error 2: Not uexp")
-
+        while (file.tell()<file_size):
             #get id string
-            _, id, data = TextUexp.pop_str(data)
+            _, id = TextUexp.read_str(file)
             if id[0]!="$":
                 raise RuntimeError("format error 3: Failed to parse")
 
-            #get text 1 (may be subtitle text)
-            if data[0:4]==TextUexp.PAD:
+            text_utf16, text = TextUexp.read_str(file)
+            if text is None:
                 text_list=[]
                 text_utf16_list=[]
-                data = data[4:]
             else:
-                text_utf16, text, data = TextUexp.pop_str(data)
                 text_list=[text]
                 text_utf16_list=[text_utf16]
             
 
-            text_num = int.from_bytes(data[0:4], 'little')
+            text_num = int.from_bytes(file.read(4), 'little')
             
-            sep=data[4:12]
+            sep=file.read(8)
             if sep in TextUexp.SEP:
                 sep_type = TextUexp.SEP.index(sep)
                 sep_type_list=[sep_type]
-                data = data[12:]
             else:
                 if text_num!=0:
                     print(text)
                     raise RuntimeError("format error 4: Failed to parse")
+                file.seek(file.tell()-12)
                 sep_type_list=[]
                 text_num=1
 
             #get other texts (sometimes, non subtitle data has more texts.)            
             if text_num>=2:
                 for i in range(text_num-1):
-                    text_utf16, text, data = TextUexp.pop_str(data)
-                    if data[0:8] in TextUexp.SEP:
-                        sep_type = TextUexp.SEP.index(data[0:8])
-                        data=data[8:]
+                    text_utf16, text = TextUexp.read_str(bin)
+                    sep = file.read(8)
+                    if sep in TextUexp.SEP:
+                        sep_type = TextUexp.SEP.index(sep)
                     else:
                         raise RuntimeError("format error 5: Failed to parse")
                     
@@ -108,12 +107,11 @@ class TextUexp:
                     raise RuntimeError("format error 6: Failed to parse")
 
             #get talker's name
-            if data[0:4]==TextUexp.PAD:
+            talker_utf16, talker = TextUexp.read_str(bin)
+
+            if talker is None:
                 talker_utf16=False
                 talker=""
-                data = data[4:]
-            else:
-                talker_utf16, talker, data = TextUexp.pop_str(data)
 
             #add extracted data to the list
             text_object = {
@@ -129,10 +127,16 @@ class TextUexp:
                 print(id)
                 print(text)
                 print(talker)
+
+        foot = file.read(4)
+        if foot!=TextUexp.FOOT: #Not found footer
+            raise RuntimeError("format error 2: Not uexp")
         
         #check the format
         if len(self.text_object_list)!=object_num:
             raise RuntimeError("Parse failed. Number of objects does not match.")
+
+        file.close()
 
     def save_as_json(self, file):
         json_data = {}
@@ -245,52 +249,53 @@ class TextUexp:
 
     def save_as_uexp(self, file):
         #check uasset exist
-        if not os.path.isfile(self.file[:-4]+"uasset"):
-            raise RuntimeError("Not found "+self.file[:-4]+"uasset")
+        if not os.path.isfile(self.file_name[:-4]+"uasset"):
+            raise RuntimeError("Not found "+self.file_name[:-4]+"uasset")
 
-        data = self.header
+        file = open(file, "wb")
+
+        file.write(self.header)
         for t in self.text_object_list:
             #add id data
             id = t["id"]
-            data += TextUexp.str_to_bin(False, id)
+            file.write(TextUexp.str_to_bin(False, id))
 
             #add text 1 data (may be subtitle text)
             text_list = t["text"]["str"]
             text_utf16_list = t["text"]["utf-16"]
             sep_type_list = t["sep_type"]
             if len(text_list)==0:
-                data += TextUexp.PAD
+                file.write(TextUexp.PAD)
                 if len(sep_type_list)>0:
-                    data +=b"\x01\x00\x00\x00"
-                    data += TextUexp.SEP[sep_type_list[0]]
+                    file.write(b"\x01\x00\x00\x00")
+                    file.write(TextUexp.SEP[sep_type_list[0]])
             else:
-                
-                data += TextUexp.str_to_bin(text_utf16_list[0], text_list[0])
+                file.write(TextUexp.str_to_bin(text_utf16_list[0], text_list[0]))
                 if len(sep_type_list)>0:
-                    data += len(text_list).to_bytes(4, byteorder="little")
-                    data += TextUexp.SEP[sep_type_list[0]]
+                    file.write(len(text_list).to_bytes(4, byteorder="little"))
+                    file.write(TextUexp.SEP[sep_type_list[0]])
                 
                 #add other text data
                 for i in range(len(text_list)-1):
-                    data += TextUexp.str_to_bin(text_utf16_list[i+1], text_list[i+1])
-                    data += TextUexp.SEP[sep_type_list[i+1]]
+                    file.write(TextUexp.str_to_bin(text_utf16_list[i+1], text_list[i+1]))
+                    file.write(TextUexp.SEP[sep_type_list[i+1]])
 
             #add talker's name
             talker = t["talker"]
             if talker["str"]=="":
-                data += TextUexp.PAD
+                file.write(TextUexp.PAD)
             else:
-                data += TextUexp.str_to_bin(talker["utf-16"], talker["str"])
-        data += TextUexp.FOOT
+                file.write(TextUexp.str_to_bin(talker["utf-16"], talker["str"]))
+        file.write(TextUexp.FOOT)
 
         #write a new .uexp file
-        util.write_binary(file, data)
+        file.close()
 
         #write a new .uasset file
         new_uexp_size = os.path.getsize(file)-4
         new_uexp_size_bin=new_uexp_size.to_bytes(4, 'little', signed=True)
 
-        uasset_bin = util.read_binary(self.file[:-4]+"uasset")
+        uasset_bin = util.read_binary(self.file_name[:-4]+"uasset")
         util.write_binary(file[:-4]+"uasset", uasset_bin[:-92]+new_uexp_size_bin+uasset_bin[-88:])
 
     def swap_with_json(self, json_file):

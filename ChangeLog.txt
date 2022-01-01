@@ -1,5 +1,10 @@
 FF7R Text Mod Tools Change Log
 
+ver1.3.2
+-optimize i/o functions
+The i/o functions were not being used correctly.
+On my PC, ver1.3.1 takes about 20 sec to make dualsub mod, but ver1.3.2 takes only 3 sec.
+
 ver1.3.1
 -change json format. (compatible with old versions.)
 -bug fix

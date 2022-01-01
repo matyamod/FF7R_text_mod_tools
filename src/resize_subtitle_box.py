@@ -32,15 +32,13 @@ if __name__=="__main__":
     bin = util.read_binary(uexp)
 
     #swap data (bin[i:i+4]=v)
-    new_bin=b"\x00"
-    oi = 0
+    new_bin = open("new_"+os.path.basename(uexp), "wb")
+    oi=0
     for i, v in zip(id, val):
-        new_bin+=bin[oi:i]
-        new_bin+=v
+        new_bin.write(bin[oi:i])
+        new_bin.write(v)
         oi=i+4
-    new_bin+=bin[oi:]
-    new_bin=new_bin[1:]
+    new_bin.write(bin[oi:])
+    new_bin.close()
 
-    #save data
-    util.write_binary("new_"+os.path.basename(uexp), new_bin)
-
+    print("Done!")
