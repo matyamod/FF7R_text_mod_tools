@@ -1,3 +1,4 @@
+import codecs
 import os
 import file_util as util
 import json
@@ -16,7 +17,7 @@ class TextUexp:
 
     LANG_LIST = ["BR", "CN", "DE", "ES", "FR", "IT", "JP", "KR", "MX", "TW", "US"]
 
-    VERSION="1.3.2"
+    VERSION="1.3.3"
 
     #read string data
     def read_str(file):
@@ -25,14 +26,17 @@ class TextUexp:
 
         if num==0:
             return None, None
-        elif num<0:
+
+        utf16 = num<0
+        if utf16:
             num = -num
-            utf16 = True
-        else:
-            utf16 = False
+
         sep_id = num*(utf16+1)
 
         string = file.read(sep_id-(utf16+1)).decode("utf-16-le"*utf16+"ascii"*(not utf16))
+        if utf16:
+            string=string.encode('utf-8').decode('utf-8')
+
         file.read(utf16+1)
         return utf16, string
 
@@ -92,7 +96,7 @@ class TextUexp:
             #get other texts (sometimes, non subtitle data has more texts.)            
             if text_num>=2:
                 for i in range(text_num-1):
-                    text_utf16, text = TextUexp.read_str(bin)
+                    text_utf16, text = TextUexp.read_str(file)
                     sep = file.read(8)
                     if sep in TextUexp.SEP:
                         sep_type = TextUexp.SEP.index(sep)
@@ -107,7 +111,7 @@ class TextUexp:
                     raise RuntimeError("format error 6: Failed to parse")
 
             #get talker's name
-            talker_utf16, talker = TextUexp.read_str(bin)
+            talker_utf16, talker = TextUexp.read_str(file)
 
             if talker is None:
                 talker_utf16=False
@@ -139,13 +143,13 @@ class TextUexp:
         file.close()
 
     def save_as_json(self, file):
+        
         json_data = {}
         json_data["data"]=self.text_object_list
         meta = {"tool":"FF7R text mod tools", "version":TextUexp.VERSION}
         json_data["meta"]=meta
-
-        with open(file, 'w') as f:
-            json.dump(json_data, f, indent=4)
+        with open(file , 'w', encoding="utf-8") as f:
+            json.dump(json_data, f, indent=4, ensure_ascii=False)
 
     #Whether 2 strings are the same or not.
     #it consider letter case and some conjugations of verbs.
@@ -159,19 +163,10 @@ class TextUexp:
     def merge_string(self, s1, utf16_1, s2, utf16_2, not_subtitle, just_swap):
         new_utf16=utf16_1 or utf16_2
 
-        #encoding
-        if utf16_1 and (not utf16_2):
-            s2=s2.encode("utf-16-le").decode("utf-16-le")
-        if (not utf16_1) and utf16_2:
-            s1=s1.encode("utf-16-le").decode("utf-16-le")
-
         #insert line feed
         lf = "\r\n"
         if not_subtitle and not (lf in s1 or lf in s2):#for non subtitle data
                 lf = " / "
-
-        if new_utf16:
-            lf=lf.encode("utf-16-le").decode("utf-16-le")
 
         #merge (or swap) text
         if just_swap:
@@ -232,27 +227,24 @@ class TextUexp:
                 i+=1
 
             #merge talker's name
-            if mod_all:
-                #talker1 = t["talker"]["str"]
-                #talker2 = t2["talker"]["str"]
-                if talker1!="" and talker2!="":
-                    new_talker, new_utf16 = self.merge_string(talker1, t["talker"]["utf-16"], talker2, t2["talker"]["utf-16"], True, just_swap)
-                    t["talker"]={"utf-16":new_utf16, "str":new_talker}
+            if mod_all and talker1!="" and talker2!="":
+                new_talker, new_utf16 = self.merge_string(talker1, t["talker"]["utf-16"], talker2, t2["talker"]["utf-16"], True, just_swap)
+                t["talker"]={"utf-16":new_utf16, "str":new_talker}
 
-    def str_to_bin(utf16, str):
-        num = len(str)+1
+    def str_to_bin(utf16, s):
+        num = len(s)+1
         if utf16:
             num = -num
         num_byte = num.to_bytes(4, 'little', signed=True)
-        str_byte = str.encode("utf-16-le"*utf16+"ascii"*(not utf16))
+        str_byte = s.encode("utf-16-le"*utf16+"ascii"*(not utf16))
         return num_byte + str_byte + b"\x00"*(utf16+1)
 
-    def save_as_uexp(self, file):
+    def save_as_uexp(self, file_name):
         #check uasset exist
         if not os.path.isfile(self.file_name[:-4]+"uasset"):
             raise RuntimeError("Not found "+self.file_name[:-4]+"uasset")
 
-        file = open(file, "wb")
+        file = open(file_name, "wb")
 
         file.write(self.header)
         for t in self.text_object_list:
@@ -292,27 +284,45 @@ class TextUexp:
         file.close()
 
         #write a new .uasset file
-        new_uexp_size = os.path.getsize(file)-4
+        new_uexp_size = os.path.getsize(file_name)-4
         new_uexp_size_bin=new_uexp_size.to_bytes(4, 'little', signed=True)
 
         uasset_bin = util.read_binary(self.file_name[:-4]+"uasset")
-        util.write_binary(file[:-4]+"uasset", uasset_bin[:-92]+new_uexp_size_bin+uasset_bin[-88:])
+        util.write_binary(file_name[:-4]+"uasset", uasset_bin[:-92]+new_uexp_size_bin+uasset_bin[-88:])
+
+
+    def comp_ver(v1,v2):#v1>v2
+        def v_to_int(v):
+            v = v.split(".")
+            v = int(v[0])*10000+int(v[1])*100+int(v[2])
+            return v
+        v1 = v_to_int(v1)
+        v2 = v_to_int(v2)
+        return v1>v2
 
     def swap_with_json(self, json_file):
-        with open(json_file) as f:
+        with open(json_file, 'r', encoding="utf-8") as f:
             uexp_as_json = json.load(f)
         
-        if "meta" in uexp_as_json:#ver1.3.1
+        if "meta" in uexp_as_json:#version >= 1.3.1
             meta = uexp_as_json["meta"]
+            ver = meta["version"]
             text_object_list2=uexp_as_json["data"]
+
+        else:#version <= 1.3.0
+            ver = "1.3.0"
             
-        else:#ver1.3
+        if TextUexp.comp_ver("1.3.3", ver):#if version < 1.3.3
+            with open(json_file, 'r') as f:
+                uexp_as_json = json.load(f)
+            text_object_list2=uexp_as_json["data"]
+
+        if ver=="1.3.0":
             text_object_list2=[]
             for i in range(len(self.text_object_list)):
                 t = uexp_as_json[str(i)]
                 t["id"]=t["id"]["str"]
                 text_object_list2.append(t)
-            
         
         self.merge_text(text_object_list2, just_swap=True, mod_all=all)
 
@@ -320,7 +330,6 @@ class TextUexp:
         txt_data = []
         for t in self.text_object_list:
             text_list = t["text"]["str"]
-            text_utf16_list = t["text"]["utf-16"]
             talker = t["talker"]["str"]
 
             if len(text_list)==0:
@@ -329,15 +338,10 @@ class TextUexp:
             if talker=="":
                 talker="***"
 
-            if t["talker"]["utf-16"]:
-                talker = talker.encode("utf-8").decode("utf-8")
-                
             txt_data.append(talker)
 
 
-            for text, utf16 in zip(text_list, text_utf16_list):
-                if utf16:
-                    text = text.encode("utf-8").decode("utf-8")
+            for text in text_list:
                 text = text.split("\r\n")
                 
                 for l in text:

@@ -1,5 +1,9 @@
 FF7R Text Mod Tools Change Log
 
+ver1.3.3
+-use utf-8 for json encoding. (compatible with old versions.)
+-bug fix
+
 ver1.3.2
 -optimize i/o functions
 The i/o functions were not being used correctly.
