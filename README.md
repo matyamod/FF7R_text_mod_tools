@@ -44,7 +44,7 @@ If you run `make_dualsub_mod.exe` with `--just_swap` otption, subtitle data will
 ```
 resize_subtitle_box.exe uexp [options]
 ```
-- uexp: where `Subtitle00.uexp` is (e.g. `D:\quickbms\pakchunk0_s22-WindowsNoEditor.pak\Menu\Resident\Cinema\Subtitle00.uexp`)
+- uexp: where `Subtitle00.uexp` is (e.g. `D:\quickbms\pakchunk0_s22-WindowsNoEditor\Menu\Resident\Cinema\Subtitle00.uexp`)
 - --width= : width of subtitle wedget
 - --height= : height of subtitle wedget
 
@@ -56,7 +56,7 @@ If you run `resize_subtitle_box.exe`, `new_Subtitle00.uexp` will be generated .
 ## .uexp to .json
 `uexp_to_json.exe` is a tool for exporting text data as .json.<br>
 This tool can use for only text data (`End\Content\GameContents\Text\*\*.uexp`).<br>
-Also, the output json file will not be compatible with other tools<br>
+Also, the output json files will not be compatible with other tools<br>
 ### Usage
 
 ```
@@ -64,7 +64,7 @@ uexp_to_json.exe uexp --mode="uexp2json" [options]
 ```
 - uexp: uexp file (e.g. `D:\quickbms\pakchunk0_s24-WindowsNoEditor\End\Content\GameContents\Text\US\010-MAKO1_TxtRes.uexp`)
 - --mode="uexp2json"
-- --out_dir= : save folder
+- --out_dir= : output folder
 
 ## .json to .uexp
 If you run `uexp_to_json.exe` with `--mode="json2uexp"` option, text data will be replaced with .json.<br>
@@ -77,7 +77,7 @@ uexp_to_json.exe uexp --mode="json2uexp" --json=json [options]
 - uexp: uexp file (e.g. `D:\quickbms\pakchunk0_s24-WindowsNoEditor\End\Content\GameContents\Text\US\010-MAKO1_TxtRes.uexp`)
 - --mode="json2uexp"
 - --json=: json file (e.g. `.\json\010-MAKO1_TxtRes.json`)
-- --out_dir= : save folder
+- --out_dir= : output folder
 
 ## .uexp to .txt
 If you run `uexp_to_json.exe` with `--mode="uexp2txt"` option, text data will be exported as .txt like [this](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/Dialog-Test-Data%3F).<br>
@@ -89,7 +89,7 @@ uexp_to_json.exe uexp --mode="uexp2txt" [options]
 ```
 - uexp: uexp file (e.g. `D:\quickbms\pakchunk0_s24-WindowsNoEditor\End\Content\GameContents\Text\US\010-MAKO1_TxtRes.uexp`)
 - --mode="uexp2txt"
-- --out_dir= : save folder
+- --out_dir= : output folder
 
 
 
