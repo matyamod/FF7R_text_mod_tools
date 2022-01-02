@@ -13,6 +13,10 @@ There are 6 functions in my tools.
 - .json to .uexp: Swaps text data with .json.
 - .uexp to .txt: Exports text data as .txt.
 
+## Tutorial
+Here is a tutorial for text modding<br>
+[Text Mod Tutorial · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/Text-Mod-Tutorial)<br>
+
 
 ## Make Dualsub Mod
 `make_dualsub_mod.exe` is a tool for merging subtitle data.<br>
@@ -38,7 +42,7 @@ If you run `make_dualsub_mod.exe`, a mod folder (like `.\dualsub_mod_US_JP`) wil
 ## Make Swapsub Mod
 If you run `make_dualsub_mod.exe` with `--just_swap` otption, subtitle data will be swapped between 2 languages.
 
-## Resize subtitle box
+## Resize Subtitle Box
 `resize_subtitle_box.exe` is a tool for resizeing subtitle wedget.
 ### Usage
 ```
@@ -90,8 +94,6 @@ uexp_to_json.exe uexp --mode="uexp2txt" [options]
 - uexp: uexp file (e.g. `D:\quickbms\pakchunk0_s24-WindowsNoEditor\End\Content\GameContents\Text\US\010-MAKO1_TxtRes.uexp`)
 - --mode="uexp2txt"
 - --out_dir= : output folder
-
-
 
 ## Tips on Text Modding
 I posted some tips (format specification, text decoration, etc.) here.<br>
