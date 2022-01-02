@@ -1,5 +1,8 @@
 FF7R Text Mod Tools Change Log
 
+ver1.3.4
+-simplified json format. (compatible with old versions.)
+
 ver1.3.3
 -use utf-8 for json encoding. (compatible with old versions.)
 -bugfix

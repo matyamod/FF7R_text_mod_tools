@@ -1,5 +1,4 @@
-import codecs
-import os
+import os, copy
 import file_util as util
 import json
 
@@ -17,7 +16,7 @@ class TextUexp:
 
     LANG_LIST = ["BR", "CN", "DE", "ES", "FR", "IT", "JP", "KR", "MX", "TW", "US"]
 
-    VERSION="1.3.3"
+    VERSION="1.3.4"
 
     #read string data
     def read_str(file):
@@ -142,10 +141,28 @@ class TextUexp:
 
         file.close()
 
+    TYPE_LIST=type([])
+
     def save_as_json(self, file):
         
         json_data = {}
-        json_data["data"]=self.text_object_list
+
+        def list_simplify(list):
+            if len(list)==1:
+                list = list[0]
+            elif len(list)==0:
+                list = None
+            return list
+
+        data = copy.deepcopy(self.text_object_list)
+        for d in data:
+            text = d["text"]["str"]
+            text = list_simplify(text)
+            d["text"]=text
+            del d["sep_type"]
+            d["talker"]=d["talker"]["str"]
+
+        json_data["data"]=data
         meta = {"tool":"FF7R text mod tools", "version":TextUexp.VERSION}
         json_data["meta"]=meta
         with open(file , 'w', encoding="utf-8") as f:
@@ -301,6 +318,7 @@ class TextUexp:
         return v1>v2
 
     def swap_with_json(self, json_file):
+
         with open(json_file, 'r', encoding="utf-8") as f:
             uexp_as_json = json.load(f)
         
@@ -311,18 +329,46 @@ class TextUexp:
 
         else:#version <= 1.3.0
             ver = "1.3.0"
-            
-        if TextUexp.comp_ver("1.3.3", ver):#if version < 1.3.3
-            with open(json_file, 'r') as f:
-                uexp_as_json = json.load(f)
-            text_object_list2=uexp_as_json["data"]
 
-        if ver=="1.3.0":
+        def to_list(var):
+            if var is None:
+                var = []
+            if type(var)!=TextUexp.TYPE_LIST:
+                var = [var]
+            return var
+
+        def is_not_ascii(s):
+            """Check if the characters in string s are in ASCII, U+0-U+7F."""
+            return len(s) != len(s.encode())
+
+        def get_utf16_list(text_list):
+            utf16_list=[]
+            for text in text_list:
+                utf16_list.append(is_not_ascii(text))
+            return utf16_list
+
+
+        if TextUexp.comp_ver(ver, "1.3.3"):#if version > 1.3.3
+            for t in text_object_list2:
+                text_str = to_list(t["text"])
+                text_utf16 = get_utf16_list(text_str)
+                t["text"]={"utf-16":text_utf16, "str":text_str}
+                talker=t["talker"]
+                t["talker"]={"utf-16":is_not_ascii(talker), "str":talker}
+        
+        elif ver=="1.3.0":
             text_object_list2=[]
             for i in range(len(self.text_object_list)):
                 t = uexp_as_json[str(i)]
                 t["id"]=t["id"]["str"]
                 text_object_list2.append(t)
+
+        elif TextUexp.comp_ver("1.3.3", ver):#if version < 1.3.3
+            with open(json_file, 'r') as f:
+                uexp_as_json = json.load(f)
+            text_object_list2=uexp_as_json["data"]
+
+        
         
         self.merge_text(text_object_list2, just_swap=True, mod_all=all)
 

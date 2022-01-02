@@ -1,4 +1,4 @@
-# FF7R Text Mod Tools ver 1.3.3
+# FF7R Text Mod Tools ver 1.3.4
 Text modding tools for FF7R (Final Fantasy VII Remake)<br>
 
 
