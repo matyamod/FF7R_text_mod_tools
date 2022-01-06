@@ -9,6 +9,6 @@ set LANG1=US
 set LANG2=JP
 rem Language list: BR, CN, DE, ES, FR, IT, JP, KR, MX, TW, US
 
-make_dualsub_mod.exe %PAK_DIR% %LANG1% %LANG2%
+FF7R_text_mod_tools.exe --mode=dualsub --pak_dir="%PAK_DIR%" --lang1=%LANG1% --lang2=%LANG2%
 
 pause

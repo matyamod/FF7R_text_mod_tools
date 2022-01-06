@@ -7,7 +7,7 @@ REM New .uexp will be generated in ./
 @if "%~1"=="" goto skip
 
 @pushd %~dp0
-resize_subtitle_box.exe %~1
+FF7R_text_mod_tools.exe --mode=resize --uexp="%~1" --width=1170 --height=260
 @popd
 
 pause

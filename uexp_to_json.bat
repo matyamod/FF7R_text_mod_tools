@@ -7,7 +7,7 @@ REM New .json will be generated in FF7R_text_mod_tools\json
 @if "%~1"=="" goto skip
 
 @pushd %~dp0
-uexp_to_json.exe %~1 --out_dir=json
+FF7R_text_mod_tools.exe --mode=uexp2json --uexp="%~1" --out_dir=json
 @popd
 
 pause
