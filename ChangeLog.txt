@@ -1,5 +1,16 @@
 FF7R Text Mod Tools Change Log
 
+ver1.4.0
+-add GUI support
+-merge all tools into one .exe file
+-use recompiled bootloader for pyinstall
+-change json format (compatible with old versions.)
+-bugfix (support whitespaces in file names)
+I recompiled the bootloader of pyinstall.
+It will reduce the possibility of false positives in virus scanning.
+Also, I changed the format of .json files.
+The .json files extracted by old versions are compatible now, but they will be incompatible in the future.
+
 ver1.3.4
 -simplified json format. (compatible with old versions.)
 

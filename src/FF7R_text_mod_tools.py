@@ -126,7 +126,7 @@ class DualsubArgs:
         self.save_as_txt=False
         
 #---args for resize_subtitle_box.py---
-class WedgetArgs:
+class WidgetArgs:
     def __init__(self, uexp, width, height):
         self.uexp=uexp
         self.width=width
@@ -144,8 +144,8 @@ class App:
 
         #make frames
         frames ={}
-        frame_name = ['Export', 'Import', 'Dualsub', 'Wedget']
-        frame_title = ['Export Text Data', 'Import Text Data', 'Make Dualsub', 'Resize Subtitle Wedget']
+        frame_name = ['Export', 'Import', 'Dualsub', 'Widget']
+        frame_title = ['Export Text Data', 'Import Text Data', 'Make Dualsub', 'Resize Subtitle Widget']
         frame_desc = ['Extracts text data from .uexp', 'Imports text data from .json to .uexp',\
                       'Merges (or swaps) subtitle data between 2 languages', 'Resizes subtitle text box']
         for title, name, desc in zip(frame_title, frame_name, frame_desc):
@@ -198,10 +198,10 @@ class App:
                 add_button(footer,'Make Dualsub', self.make_dual_sub, col=2, sticky='e')
 
             if name==frame_name[3]:
-                #frame for resize wedget mode
+                #frame for resize widget mode
                 add_text(body, 'Subtitle00.uexp', row=1, sticky='e')
-                self.uexp_wedget,_ = add_entry(body, row=1, col=1, width=33)
-                add_button(body, '...', get_file_func(self.uexp_wedget, [('Subtitle00.uexp', '*Subtitle00.uexp')], self.uexp_wedget_dir), row=1, col=2)
+                self.uexp_widget,_ = add_entry(body, row=1, col=1, width=33)
+                add_button(body, '...', get_file_func(self.uexp_widget, [('Subtitle00.uexp', '*Subtitle00.uexp')], self.uexp_widget_dir), row=1, col=2)
                 add_text(body, 'Width (1~1920)', row=2, sticky='e')
                 self.width, width_entry = add_entry(body, row=2, col=1, width=5)
                 add_num_valid_to_entry(width_entry, self.width, 1, 1920)
@@ -213,7 +213,7 @@ class App:
                 add_text(footer, 'preset', col=0, sticky='e')
                 add_button(footer,'Vanilla', self.setSize(930, 210), col=1, sticky='w')
                 add_button(footer,'Dualsub', self.setSize(1170, 260), col=2, sticky='w')
-                add_button(footer,'Resize', self.resize_subtitle_wedget, col=6, sticky='ew')
+                add_button(footer,'Resize', self.resize_subtitle_widget, col=6, sticky='ew')
                 col_count,_ = footer.grid_size()
                 for col in range(col_count):
                     footer.grid_columnconfigure(col, minsize=42)
@@ -352,22 +352,22 @@ class App:
         except Exception as e:
             messagebox.showerror('Unexpected Error',e)
     
-    def resize_subtitle_wedget(self):
-        uexp = self.uexp_wedget.get()
+    def resize_subtitle_widget(self):
+        uexp = self.uexp_widget.get()
         if not check_file_exist(uexp, 'uexp'):
             return
 
         width=self.width.get()
         height=self.height.get()
         if width=='' or height=='':
-            messagebox.showinfo('Missing Arguments', 'You must specify the size of wedget.')
+            messagebox.showinfo('Missing Arguments', 'You must specify the size of widget.')
             return False
 
-        self.uexp_wedget_dir.set(os.path.dirname(uexp))
+        self.uexp_widget_dir.set(os.path.dirname(uexp))
         self.mode=3
         self.save_config()
         
-        args=WedgetArgs(uexp, width, height)
+        args=WidgetArgs(uexp, width, height)
         new_file=os.path.join(os.getcwd(), "new_Subtitle00.uexp")
         if not ask_overwrite(new_file):
             return
@@ -384,13 +384,13 @@ class App:
         self.uexp_dir=tk.StringVar()
         self.json_dir=tk.StringVar()
         self.new_uexp_dir = tk.StringVar()
-        self.uexp_wedget_dir = tk.StringVar()
+        self.uexp_widget_dir = tk.StringVar()
         try:
             with open(App.config_file, 'r', encoding="utf-8") as f:
                 json_data = json.load(f)
                 config = json_data["config"]
 
-                for n in ["uexp_dir", "json_dir", "new_uexp_dir", "pak_dir", "uexp_wedget_dir"]:
+                for n in ["uexp_dir", "json_dir", "new_uexp_dir", "pak_dir", "uexp_widget_dir"]:
                     if not ("uexp_dir" in config) or not os.path.exists(config[n]):
                         config[n]=os.getcwd()
 
@@ -400,7 +400,7 @@ class App:
                 self.uexp_dir.set(config["uexp_dir"])
                 self.json_dir.set(config["json_dir"])
                 self.new_uexp_dir.set(config["new_uexp_dir"])
-                self.uexp_wedget_dir.set(config["uexp_wedget_dir"])
+                self.uexp_widget_dir.set(config["uexp_widget_dir"])
                 self.pak_dir=config["pak_dir"]
                 self.lang1=config["lang1"]
                 self.lang2=config["lang2"]
@@ -411,7 +411,7 @@ class App:
             self.uexp_dir.set(os.getcwd())
             self.json_dir.set(os.getcwd())
             self.new_uexp_dir.set(os.getcwd())
-            self.uexp_wedget_dir.set(os.getcwd())
+            self.uexp_widget_dir.set(os.getcwd())
             self.pak_dir=os.getcwd()
             self.lang1="US"
             self.lang2="JP"
@@ -422,7 +422,7 @@ class App:
         config={"uexp_dir":self.uexp_dir.get(), "json_dir":self.json_dir.get()}
         config["new_uexp_dir"]=self.new_uexp_dir.get()
         config["pak_dir"]=self.pak_dir
-        config["uexp_wedget_dir"]=self.uexp_wedget_dir.get()
+        config["uexp_widget_dir"]=self.uexp_widget_dir.get()
         config["lang1"]=self.lang1
         config["lang2"]=self.lang2
         config["mode"]=self.mode
@@ -465,7 +465,7 @@ def get_args():
     parser.add_argument('--just_swap', action='store_true', help="")
     parser.add_argument('--all', action='store_true', help="Edit all text data in the game")
 
-    #for subtitle wedget
+    #for subtitle widget
     parser.add_argument('--width', default=1170, help = "width of subtitle text box")
     parser.add_argument('--height', default=260, help = "height of subtitle text box")
 
@@ -509,6 +509,7 @@ if __name__ == '__main__':
                 uexp_to_json.uexp_to_txt(args)
             else:
                 raise RuntimeError("Unsupported mode. ("+mode+")")
+        print("Done!")
             
 
 
