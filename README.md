@@ -36,11 +36,11 @@ I posted some tips (format specification, text decoration, etc.) here.<br>
 
 ## Q&A
 
-### Is the .exe malware?
+### Is the .exe file malware?
 No, it is a false positive caused by pyinstaller.<br>
 <br>
 [AVG (and other antiviruses) reports exe file as containing virus · Issue #603 · pyinstaller/pyinstaller](https://github.com/pyinstaller/pyinstaller/issues/603)<br>
 <br>
-I recompiled the bootloader of pyinstall to reduce false positives, but it will not completely solve the issue.<br>
-If you are worried about security, please run [the Python scripts](https://github.com/matyalatte/FF7R_text_mod_tools/tree/main/src) instead of .exe files.<br>
+I recompiled the bootloader of pyinstaller to reduce false positives, but it will not completely solve the issue.<br>
+If you are worried about security, please run [the Python scripts](https://github.com/matyalatte/FF7R_text_mod_tools/tree/main/src) instead of the .exe file.<br>
 
