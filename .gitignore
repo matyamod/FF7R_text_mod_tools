@@ -18,3 +18,4 @@ py*
 !ChangeLog.txt
 *.pak
 *.uexp
+*.config

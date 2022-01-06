@@ -10,6 +10,7 @@ def get_args():
     parser.add_argument('pak_dir', help = "where you unpaked .pak file.")
     parser.add_argument('lang1', help = "BR, CN, DE, ES, FR, IT, JP, KR, MX, TW, US")
     parser.add_argument('lang2', help = "BR, CN, DE, ES, FR, IT, JP, KR, MX, TW, US")
+    
     parser.add_argument('--mod_name', default="dualsub_mod_l1_l2", help = "Folder's name for new mod")
     parser.add_argument('--save_as_json', action='store_true', help="Export subtitle data as json")
     parser.add_argument('--save_as_txt', action='store_true', help="Export subtitle data as txt")
@@ -21,11 +22,7 @@ def get_args():
     args = parser.parse_args()
     return args
 
-if __name__=="__main__":
-    print("FF7R Text Mod Tools ver "+ver+" by Matyalatte")
-
-    #Get args
-    args=get_args()
+def make_dual_sub_mod(args):
     pak_dir = args.pak_dir
     lang1 = args.lang1
     lang2 = args.lang2
@@ -45,7 +42,7 @@ if __name__=="__main__":
 
     mod_name = args.mod_name
     if mod_name=="dualsub_mod_l1_l2":
-        mod_name="dual"*(not just_swap)+"swap"*just_swap+"sub_mod_"+lang1+"_"+lang2+"_all"*args.all
+        mod_name="Dual"*(not just_swap)+"Swap"*just_swap+"sub_"+lang1+"_"+lang2+"_all"*args.all
 
     print("mod name: "+mod_name)
 
@@ -93,6 +90,15 @@ if __name__=="__main__":
 
         make_dualsub(uexp_lang1, lang1, lang2_text_object_list)
         make_dualsub(uexp_lang2, lang2, lang1_text_object_list)
+
+
+if __name__=="__main__":
+    print("FF7R Text Mod Tools ver "+ver+" by Matyalatte")
+
+    #Get args
+    args=get_args()
+
+    make_dual_sub_mod(args)
 
     print("Done!")
 

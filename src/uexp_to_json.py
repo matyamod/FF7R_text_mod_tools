@@ -15,6 +15,54 @@ def get_args():
     args = parser.parse_args()
     return args
 
+def uexp_to_json(args):
+    uexp_file = args.uexp
+    out_dir = args.out_dir
+    if out_dir is None:
+        out_dir="json"
+    
+    #Load uexp
+    uexp = TextUexp(uexp_file, args.vorbose)
+
+    #Save as json
+    util.mkdir(out_dir)
+    uexp.save_as_json(os.path.join(out_dir, os.path.basename(uexp_file)[:-4]+"json"))
+
+def json_to_uexp(args):
+    if args.vorbose:
+        print("--json: "+args.json)
+
+    if args.json is None:
+        raise RuntimeError("Specify a json file by '--json' argument.")
+
+    uexp_file = args.uexp
+    json_file = args.json
+    out_dir = args.out_dir
+    if out_dir is None:
+        out_dir="new_uexp"
+    
+    #Load uexp
+    uexp = TextUexp(uexp_file, args.vorbose)
+
+    #Swap subtitle text with json
+    uexp.swap_with_json(json_file)
+
+    #Save as uexp
+    util.mkdir(out_dir)
+    uexp.save_as_uexp(os.path.join(out_dir, os.path.basename(uexp_file)))
+
+def uexp_to_txt(args):
+    uexp_file = args.uexp
+    out_dir = args.out_dir
+    if out_dir is None:
+        out_dir="txt"
+
+    uexp = TextUexp(uexp_file, args.vorbose)
+
+    #Save as txt
+    util.mkdir(out_dir)
+    uexp.save_as_txt(os.path.join(out_dir, os.path.basename(uexp_file)[:-4]+"txt"))
+
 if __name__=="__main__":
     
     #Get args
@@ -29,54 +77,6 @@ if __name__=="__main__":
         print("--mode: "+args.mode)
         print("--out_dir: "+args.out_dir)
     
-    def uexp_to_json(args):
-        uexp_file = args.uexp
-        out_dir = args.out_dir
-        if out_dir is None:
-            out_dir="json"
-        
-        #Load uexp
-        uexp = TextUexp(uexp_file, args.vorbose)
-
-        #Save as json
-        util.mkdir(out_dir)
-        uexp.save_as_json(os.path.join(out_dir, os.path.basename(uexp_file)[:-4]+"json"))
-
-    def json_to_uexp(args):
-        if args.vorbose:
-            print("--json: "+args.json)
-
-        if args.json is None:
-            raise RuntimeError("Specify a json file by '--json' argument.")
-
-        uexp_file = args.uexp
-        json_file = args.json
-        out_dir = args.out_dir
-        if out_dir is None:
-            out_dir="new_uexp"
-        
-        #Load uexp
-        uexp = TextUexp(uexp_file, args.vorbose)
-
-        #Swap subtitle text with json
-        uexp.swap_with_json(json_file)
-
-        #Save as uexp
-        util.mkdir(out_dir)
-        uexp.save_as_uexp(os.path.join(out_dir, os.path.basename(uexp_file)))
-
-    def uexp_to_txt(args):
-        uexp_file = args.uexp
-        out_dir = args.out_dir
-        if out_dir is None:
-            out_dir="txt"
-
-        uexp = TextUexp(uexp_file, args.vorbose)
-
-        #Save as txt
-        util.mkdir(out_dir)
-        uexp.save_as_txt(os.path.join(out_dir, os.path.basename(uexp_file)[:-4]+"txt"))
-
     if args.mode=="uexp2json":
         uexp_to_json(args)
     elif args.mode=="json2uexp":

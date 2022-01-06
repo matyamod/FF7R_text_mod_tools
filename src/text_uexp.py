@@ -16,7 +16,7 @@ class TextUexp:
 
     LANG_LIST = ["BR", "CN", "DE", "ES", "FR", "IT", "JP", "KR", "MX", "TW", "US"]
 
-    VERSION="1.3.4"
+    VERSION="1.3.5"
 
     #read string data
     def read_str(file):

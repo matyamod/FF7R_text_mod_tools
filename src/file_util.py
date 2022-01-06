@@ -1,4 +1,4 @@
-import os,shutil,random
+import os
 
 def mkdir(dir):
     os.makedirs(dir, exist_ok=True)

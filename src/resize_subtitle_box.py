@@ -9,8 +9,7 @@ def get_args():
     args = parser.parse_args()
     return args
 
-if __name__=="__main__":
-    args = get_args()
+def resize_subtitle_box(args):
     uexp = args.uexp
     if os.path.basename(uexp)!="Subtitle00.uexp":
         raise RuntimeError("Not 'Subtitle00.uexp'")
@@ -41,4 +40,7 @@ if __name__=="__main__":
     new_bin.write(bin[oi:])
     new_bin.close()
 
+if __name__=="__main__":
+    args = get_args()
+    resize_subtitle_box(args)
     print("Done!")
