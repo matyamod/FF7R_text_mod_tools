@@ -10,10 +10,15 @@ There are 4 features in my tool.
 - Makes dualsub mod
 - Resizes subtitle widget
 
+## Download
+Download `FF7R_text_mod_tools_1.4.0.zip` from here.<br>
+[Releases · matyalatte/FF7R_text_mod_tools](https://github.com/matyalatte/FF7R_text_mod_tools/releases)<br>
+<br>
+
 ## Tutorial
 Here is a tutorial for text modding<br>
 [Text Mod Tutorial · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/Text-Mod-Tutorial)<br>
-
+<br>
 
 ## GUI Manual
 FF7R Text Mod Tools has GUI support now!<br>
@@ -21,18 +26,19 @@ FF7R Text Mod Tools has GUI support now!<br>
 ![test](https://user-images.githubusercontent.com/69258547/148355171-8c2bc038-e31c-4969-9dd5-21495e92902b.png)<br>
 <br>
 Here is the GUI manual.<br>
-[GUI Manual · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/GUI-Manual)
+[GUI Manual · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/GUI-Manual)<br>
+<br>
 
-
-## CUI Manual
-You can also use the tool with CUI.<br>
-Here is the CUI manual.<br>
-[CUI Manual · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/CUI-Manual)
-
+## CLI Manual
+You can also use the tool with Command-Line.<br>
+Here is the CLI manual.<br>
+[CLI Manual · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/CLI-Manual)<br>
+<br>
 
 ## Tips on Text Modding
 I posted some tips (format specification, text decoration, etc.) here.<br>
-[Home · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki)
+[Home · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki)<br>
+<br>
 
 ## Q&A
 
