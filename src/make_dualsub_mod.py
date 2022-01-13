@@ -53,7 +53,7 @@ def make_dual_sub_mod(args):
 
     def make_dualsub(uexp, lang, text_object_list):
         #Merge subtitles
-        uexp.merge_text(text_object_list, just_swap=args.just_swap, mod_all=args.all)
+        uexp.merge_text(text_object_list, just_swap=args.just_swap, mod_all=args.all, reject_similar_word=True)
 
         #Export subtitle data as json
         if args.save_as_json:

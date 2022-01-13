@@ -16,7 +16,7 @@ class TextUexp:
 
     LANG_LIST = ["BR", "CN", "DE", "ES", "FR", "IT", "JP", "KR", "MX", "TW", "US"]
 
-    VERSION="1.4.0"
+    VERSION="1.4.1"
 
     #read string data
     def read_str(file):
@@ -39,8 +39,14 @@ class TextUexp:
         file.read(utf16+1)
         return utf16, string
 
+    
+    def __init__(self, uexp_file_name=None, vorbose=False):
+        self.vorbose=vorbose
+        if uexp_file_name is not None:
+            self.load(uexp_file_name)
+
     #load .uexp file and extract text data
-    def __init__(self, uexp_file_name, vorbose=False):
+    def load(self, uexp_file_name):
         if uexp_file_name[-5:]!=".uexp":
             raise RuntimeError("file extension error (not .uexp)")
 
@@ -126,7 +132,7 @@ class TextUexp:
             self.text_object_list.append(text_object)
 
             #log
-            if vorbose:
+            if self.vorbose:
                 print(id)
                 print(text)
                 print(speaker)
@@ -140,8 +146,6 @@ class TextUexp:
             raise RuntimeError("Parse failed. Number of objects does not match.")
 
         file.close()
-
-    TYPE_LIST=type([])
 
     def save_as_json(self, file):
         
@@ -177,7 +181,7 @@ class TextUexp:
         return s1[:m-1].lower()==s2[:m-1].lower()
 
     #merge single text.
-    def merge_string(self, s1, utf16_1, s2, utf16_2, not_subtitle, just_swap):
+    def merge_string(self, s1, utf16_1, s2, utf16_2, not_subtitle, just_swap, reject_similar_word=False):
         new_utf16=utf16_1 or utf16_2
 
         #insert line feed
@@ -191,14 +195,14 @@ class TextUexp:
         else:
             new_s = s1+lf+s2
         
-        if (not self.is_subtitle_file) and TextUexp.is_same_word(s1, s2):
+        if (not self.is_subtitle_file) and reject_similar_word and TextUexp.is_same_word(s1, s2):
             new_s=s1
             new_utf16=utf16_1
 
         return new_s, new_utf16
 
 
-    def merge_text(self, text_object_list, just_swap=False, mod_all=False):
+    def merge_text(self, text_object_list, just_swap=False, mod_all=False, reject_similar_word=False):
         if len(self.text_object_list)!=len(text_object_list):
             raise RuntimeError("Merge failed. Number of objects does not match.")
         
@@ -237,15 +241,15 @@ class TextUexp:
                 
                 text_2=text_list_2[i]
                 utf16_2=utf16_list_2[i]
-                new_text, new_utf16 = self.merge_string(text, utf16, text_2, utf16_2, not_subtitle, just_swap)
+                new_text, new_utf16 = self.merge_string(text, utf16, text_2, utf16_2, not_subtitle, just_swap, reject_similar_word=reject_similar_word)
                 
                 text_list[i]=new_text
                 utf16_list[i]=new_utf16
                 i+=1
-
+            
             #merge speaker's name
             if mod_all and speaker1!="" and speaker2!="":
-                new_speaker, new_utf16 = self.merge_string(speaker1, t["speaker"]["utf-16"], speaker2, t2["speaker"]["utf-16"], True, just_swap)
+                new_speaker, new_utf16 = self.merge_string(speaker1, t["speaker"]["utf-16"], speaker2, t2["speaker"]["utf-16"], True, just_swap, reject_similar_word=reject_similar_word)
                 t["speaker"]={"utf-16":new_utf16, "str":new_speaker}
 
     def str_to_bin(utf16, s):
@@ -333,12 +337,11 @@ class TextUexp:
         def to_list(var):
             if var is None:
                 var = []
-            if type(var)!=TextUexp.TYPE_LIST:
+            if type(var)!=type([]):
                 var = [var]
             return var
 
         def is_not_ascii(s):
-            """Check if the characters in string s are in ASCII, U+0-U+7F."""
             return len(s) != len(s.encode())
 
         def get_utf16_list(text_list):
