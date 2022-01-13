@@ -1,4 +1,4 @@
-# FF7R Text Mod Tools ver 1.4.0
+# FF7R Text Mod Tools ver 1.4.1
 Text modding tools for FF7R (Final Fantasy VII Remake)<br>
 
 
@@ -16,14 +16,13 @@ Download `FF7R_text_mod_tools_1.4.0.zip` from here.<br>
 <br>
 
 ## Tutorial
-Here is a tutorial for text modding<br>
 [Text Mod Tutorial · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/Text-Mod-Tutorial)<br>
 <br>
 
 ## GUI Manual
 FF7R Text Mod Tools has GUI support now!<br>
 <br>
-![test](https://user-images.githubusercontent.com/69258547/148355171-8c2bc038-e31c-4969-9dd5-21495e92902b.png)<br>
+![gui_export](https://user-images.githubusercontent.com/69258547/148523887-4649f924-a467-4f55-bbdf-f36717eb99b0.png)<br>
 <br>
 Here is the GUI manual.<br>
 [GUI Manual · matyalatte/FF7R_text_mod_tools Wiki](https://github.com/matyalatte/FF7R_text_mod_tools/wiki/GUI-Manual)<br>
