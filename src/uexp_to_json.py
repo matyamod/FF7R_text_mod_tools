@@ -20,13 +20,21 @@ def uexp_to_json(args):
     out_dir = args.out_dir
     if out_dir is None:
         out_dir="json"
-    
-    #Load uexp
-    uexp = TextUexp(uexp_file, args.vorbose)
 
-    #Save as json
     util.mkdir(out_dir)
-    uexp.save_as_json(os.path.join(out_dir, os.path.basename(uexp_file)[:-4]+"json"))
+
+    if os.path.isfile(uexp_file):
+        print(uexp_file)
+        uexp = TextUexp(uexp_file, args.vorbose)
+        uexp.save_as_json(os.path.join(out_dir, os.path.basename(uexp_file)[:-4]+"json"))
+    else:
+        util.mkdir(os.path.join(out_dir, os.path.basename(uexp_file)))
+        for f in os.listdir(uexp_file):
+            if f[-4:]=="uexp":
+                print(f)
+                file = os.path.join(uexp_file, f)
+                uexp = TextUexp(file, args.vorbose)
+                uexp.save_as_json(os.path.join(out_dir, os.path.basename(uexp_file), f[:-4]+"json"))
 
 def json_to_uexp(args):
     if args.vorbose:
@@ -57,11 +65,21 @@ def uexp_to_txt(args):
     if out_dir is None:
         out_dir="txt"
 
-    uexp = TextUexp(uexp_file, args.vorbose)
-
-    #Save as txt
     util.mkdir(out_dir)
-    uexp.save_as_txt(os.path.join(out_dir, os.path.basename(uexp_file)[:-4]+"txt"))
+
+    if os.path.isfile(uexp_file):
+        print(uexp_file)
+        uexp = TextUexp(uexp_file, args.vorbose)
+        uexp.save_as_txt(os.path.join(out_dir, os.path.basename(uexp_file)[:-4]+"txt"))
+    else:
+        for f in os.listdir(uexp_file):
+            util.mkdir(os.path.join(out_dir, os.path.basename(uexp_file)))
+            if f[-4:]=="uexp":
+                print(f)
+                file = os.path.join(uexp_file, f)
+                uexp = TextUexp(file, args.vorbose)
+                uexp.save_as_txt(os.path.join(out_dir, os.path.basename(uexp_file), f[:-4]+"txt"))
+
 
 if __name__=="__main__":
     
