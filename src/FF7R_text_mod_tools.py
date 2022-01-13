@@ -135,10 +135,12 @@ class WidgetArgs:
 #---main app---
 class App:
     def __init__(self):
+        self.width=340
+        self.height=180
 
         root = tk.Tk()
         root.title('FF7R Text Mod Tools '+'ver.'+TextUexp.VERSION+' by MatyaModding')
-        root.minsize(340, 180)
+        root.minsize(self.width, self.height)
 
         self.get_config()
 
@@ -146,8 +148,8 @@ class App:
         frames ={}
         frame_name = ['Export', 'Import', 'Dualsub', 'Widget']
         frame_title = ['Export Text Data', 'Import Text Data', 'Make Dualsub', 'Resize Subtitle Widget']
-        frame_desc = ['Extracts text data from .uexp', 'Imports text data from .json to .uexp',\
-                      'Merges (or swaps) subtitle data between 2 languages', 'Resizes subtitle text box']
+        frame_desc = ['Extracts text data from .uexp.', 'Imports text data from .json to .uexp.',\
+                      'Merges (or swaps) subtitle data between 2 languages.', 'Resizes subtitle text box.']
         for title, name, desc in zip(frame_title, frame_name, frame_desc):
             frame = tk.Frame(root)
             frame.grid(row=0, column=0, sticky='nsew')
@@ -233,11 +235,13 @@ class App:
 
         #set help menu
         menu_help = tk.Menu(menu, tearoff=0)
-        help_label=['Tutorial', 'File List', 'Text Decoration', 'Report Issues']
+        help_label=['Manual', 'Tutorial', 'File List', 'Text Decoration', 'Source Code', 'Report Issues']
         git_repo='https://github.com/matyalatte/FF7R_text_mod_tools'
-        help_url=[git_repo+'/wiki/Text-Mod-Tutorial',
+        help_url=[ git_repo+'/wiki/GUI-Manual',
+                git_repo+'/wiki/Text-Mod-Tutorial',
                 git_repo+'/wiki/File-List',
                 git_repo+'/wiki/Text-Decoration',
+                git_repo+'/tree/main/src',
                 git_repo+'/issues']
         for label, url in zip(help_label, help_url):
             menu_help.add_command(label=label, command=get_open_url_func(url))
@@ -450,7 +454,7 @@ def get_args():
     parser.add_argument('--vorbose', action='store_true')
 
     #for uexp to json
-    parser.add_argument('--mode', default="uexp2json", help="uexp2json or json2uexp or uexp2txt or dualsub or resize")
+    parser.add_argument('--mode', default=None, help="uexp2json or json2uexp or uexp2txt or dualsub or resize")
     parser.add_argument('--json', default=None)
     parser.add_argument('--out_dir', default=None)
     
@@ -476,15 +480,13 @@ if __name__ == '__main__':
     ver = TextUexp.VERSION
     print("FF7R Text Mod Tools ver "+ver+" by Matyalatte")
     args = get_args()
-    if (args.uexp is None) and (args.pak_dir is None):
+    mode = args.mode
+    if mode is None:
         print("mode: GUI")
         app = App()
         app.run()
 
     else:
-        mode = args.mode
-        if mode is None:
-            raise RuntimeError("You missing an argument. (--mode)")
         print("mode: "+mode)
         if mode=="dualsub":
             m_list=["--pak_dir", "--lang1", "--lang2"]
