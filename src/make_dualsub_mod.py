@@ -34,7 +34,7 @@ def make_dual_sub_mod(args):
     if lang1==lang2:
         raise RuntimeError("lang1 and lang2 are the same.")
 
-    LANG_LIST = ["BR", "CN", "DE", "ES", "FR", "IT", "JP", "KR", "MX", "TW", "US"]
+    LANG_LIST = TextUexp.LANG_LIST
     if lang1 not in LANG_LIST:
         raise RuntimeError(lang1+" is Not supported. Select another language.")
     if lang2 not in LANG_LIST:
@@ -68,12 +68,10 @@ def make_dual_sub_mod(args):
         util.mkdir(out_dir)
 
         #Save as uexp and uasset
-        uexp.save_as_uexp(os.path.join(out_dir, f))
+        return uexp.save_as_uexp(os.path.join(out_dir, f), reject_empty_data=True)
 
     file_list = util.get_filelist(lang1_dir, extention="uexp")
     for f in file_list:
-        print(f)
-
         #Load uexp
         uexp_lang1 = TextUexp(os.path.join(lang1_dir, f), args.vorbose)
         uexp_lang2 = TextUexp(os.path.join(lang2_dir, f), args.vorbose)
@@ -88,8 +86,11 @@ def make_dual_sub_mod(args):
             util.mkdir("txt/"+lang1)
             util.mkdir("txt/"+lang2)
 
-        make_dualsub(uexp_lang1, lang1, lang2_text_object_list)
+        saved = make_dualsub(uexp_lang1, lang1, lang2_text_object_list)
         make_dualsub(uexp_lang2, lang2, lang1_text_object_list)
+        if saved:
+            print(f)
+
 
 
 if __name__=="__main__":

@@ -48,7 +48,7 @@ class TextUexp:
     #load .uexp file and extract text data
     def load(self, uexp_file_name):
         if uexp_file_name[-5:]!=".uexp":
-            raise RuntimeError("file extension error (not .uexp)")
+            raise RuntimeError("File extension error: Not .uexp")
 
         self.is_subtitle_file=os.path.basename(uexp_file_name)[:3].isdecimal()
 
@@ -62,7 +62,7 @@ class TextUexp:
         if self.header[0:4] != TextUexp.HEAD \
             or self.header[8:13] != TextUexp.PAD+b"\x00" \
             or self.lang not in TextUexp.LANG_LIST:
-            raise RuntimeError("format error 1: Not subtitle uexp")
+            raise RuntimeError("Parse failed: Not text data")
 
         object_num = int.from_bytes(self.header[13:17], "little", signed=True)
 
@@ -73,7 +73,7 @@ class TextUexp:
             #get id string
             _, id = TextUexp.read_str(file)
             if id[0]!="$":
-                raise RuntimeError("format error 3: Failed to parse")
+                raise RuntimeError("Parse failed: ID not found")
 
             text_utf16, text = TextUexp.read_str(file)
             if text is None:
@@ -93,7 +93,7 @@ class TextUexp:
             else:
                 if text_num!=0:
                     print(text)
-                    raise RuntimeError("format error 4: Failed to parse")
+                    raise RuntimeError("Parse failed: Number of texts not found")
                 file.seek(file.tell()-12)
                 sep_type_list=[]
                 text_num=1
@@ -106,14 +106,14 @@ class TextUexp:
                     if sep in TextUexp.SEP:
                         sep_type = TextUexp.SEP.index(sep)
                     else:
-                        raise RuntimeError("format error 5: Failed to parse")
+                        raise RuntimeError("Parse failed: Separator not found")
                     
                     text_list.append(text)
                     text_utf16_list.append(text_utf16)
                     sep_type_list.append(sep_type)
 
                 if sep_type!=4:
-                    raise RuntimeError("format error 6: Failed to parse")
+                    raise RuntimeError("Parse failed: Unexpected separator found")
 
             #get speaker's name
             speaker_utf16, speaker = TextUexp.read_str(file)
@@ -139,11 +139,11 @@ class TextUexp:
 
         foot = file.read(4)
         if foot!=TextUexp.FOOT: #Not found footer
-            raise RuntimeError("format error 2: Not uexp")
+            raise RuntimeError("Parse failed: Unreal signature not found")
         
         #check the format
         if len(self.text_object_list)!=object_num:
-            raise RuntimeError("Parse failed. Number of objects does not match.")
+            raise RuntimeError("Parse failed: Number of objects does not match")
 
         file.close()
 
@@ -203,8 +203,9 @@ class TextUexp:
 
 
     def merge_text(self, text_object_list, just_swap=False, mod_all=False, reject_similar_word=False):
+        err_msg="Merge"*(not just_swap)+"Replacement"*just_swap+" failed: "
         if len(self.text_object_list)!=len(text_object_list):
-            raise RuntimeError("Merge failed. Number of objects does not match.")
+            raise RuntimeError(err_msg+"Number of objects does not match")
         
         i=0
         for t, t2 in zip(self.text_object_list, text_object_list):
@@ -219,9 +220,9 @@ class TextUexp:
                 continue
 
             #check format
-            id = t["id"]
-            if t["id"]!=t2["id"]:
-                raise RuntimeError("Merge failed. The structure is not the same.")
+            id, id2 = t["id"], t2["id"]
+            if id!=id2:
+                raise RuntimeError(err_msg+"IDs are not the same. ({} and {})".format(id, id2))
             
             speaker1 = t["speaker"]["str"]
             speaker2 = t2["speaker"]["str"]
@@ -260,10 +261,13 @@ class TextUexp:
         str_byte = s.encode("utf-16-le"*utf16+"ascii"*(not utf16))
         return num_byte + str_byte + b"\x00"*(utf16+1)
 
-    def save_as_uexp(self, file_name):
+    def save_as_uexp(self, file_name, reject_empty_data=False):
         #check uasset exist
         if not os.path.isfile(self.file_name[:-4]+"uasset"):
-            raise RuntimeError("Not found "+self.file_name[:-4]+"uasset")
+            raise RuntimeError("File not found: "+self.file_name[:-4]+"uasset")
+
+        if reject_empty_data and len(self.text_object_list)==0:
+            return False
 
         file = open(file_name, "wb")
 
@@ -310,6 +314,7 @@ class TextUexp:
 
         uasset_bin = util.read_binary(self.file_name[:-4]+"uasset")
         util.write_binary(file_name[:-4]+"uasset", uasset_bin[:-92]+new_uexp_size_bin+uasset_bin[-88:])
+        return True
 
 
     def comp_ver(v1,v2):#v1>v2
