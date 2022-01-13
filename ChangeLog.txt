@@ -3,7 +3,8 @@ FF7R Text Mod Tools Change Log
 ver1.4.1
 -bugfix (about canceling replacements)
 -add some help URLs for GUI
-In old versions, the replacement will be canceled if the texts are similar (like "File" and "Files").
+-update make_dualsub function (reject to export empty data when making the Dualsub mod)
+In old versions, the text replacement will be canceled if the texts are similar (like "File" and "Files").
 
 ver1.4.0
 -add GUI support
