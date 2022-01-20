@@ -2,6 +2,67 @@ import os, copy
 import file_util as util
 import json
 
+#---utils---
+
+def get_file_size(f):
+    pos=f.tell()
+    f.seek(0, 2)
+    size = f.tell()
+    f.seek(pos)
+    return size
+
+def read_uint32(file):
+    bin = file.read(4)
+    return int.from_bytes(bin, "little")
+
+def read_str(file):
+    num = read_uint32(file)
+    if num==0:
+        return None
+    string = file.read(num-1).decode()
+    file.seek(1,1)
+    return string
+
+def read_utf_str(file):
+    num_byte = file.read(4)
+    num = int.from_bytes(num_byte, "little", signed=True)
+
+    if num==0:
+        return None, None
+
+    utf16 = num<0
+    if utf16:
+        num = -num
+
+    sep_id = num*(utf16+1)
+
+    string = file.read(sep_id-(utf16+1)).decode("utf-16-le"*utf16+"ascii"*(not utf16))
+    if utf16:
+        string=string.encode('utf-8').decode('utf-8')
+
+    file.seek(utf16+1,1)
+    return utf16, string
+
+def write_uint32(file, n):
+    bin = n.to_bytes(4, byteorder="little")
+    file.write(bin)
+
+def write_str(file, s):
+    num = len(s)+1
+    num_byte = num.to_bytes(4, 'little')
+    str_byte = s.encode()
+    file.write(num_byte + str_byte + b'\x00')
+
+def write_utf_str(file, utf16, s):
+    num = len(s)+1
+    if utf16:
+        num = -num
+    num_byte = num.to_bytes(4, 'little', signed=True)
+    str_byte = s.encode("utf-16-le"*utf16+"ascii"*(not utf16))
+    file.write(num_byte + str_byte + b"\x00"*(utf16+1))
+
+#---objects---
+
 class TextUexp:
     HEAD = b"\x00\x03\x03\x00"
     PAD = b"\x00\x00\x00\x00" #Null
@@ -18,28 +79,6 @@ class TextUexp:
 
     VERSION="1.4.1"
 
-    #read string data
-    def read_str(file):
-        num_byte = file.read(4)
-        num = int.from_bytes(num_byte, "little", signed=True)
-
-        if num==0:
-            return None, None
-
-        utf16 = num<0
-        if utf16:
-            num = -num
-
-        sep_id = num*(utf16+1)
-
-        string = file.read(sep_id-(utf16+1)).decode("utf-16-le"*utf16+"ascii"*(not utf16))
-        if utf16:
-            string=string.encode('utf-8').decode('utf-8')
-
-        file.read(utf16+1)
-        return utf16, string
-
-    
     def __init__(self, uexp_file_name=None, vorbose=False):
         self.vorbose=vorbose
         if uexp_file_name is not None:
@@ -55,7 +94,7 @@ class TextUexp:
         #load file
         self.file_name=uexp_file_name
         file = open(self.file_name, 'rb')
-        self.header = file.read(17)
+        self.header = file.read(13)
         self.lang = self.header[6:8].decode("ascii") #e.g. 55 53 (US)
 
         #check format
@@ -64,18 +103,18 @@ class TextUexp:
             or self.lang not in TextUexp.LANG_LIST:
             raise RuntimeError("Parse failed: Not text data")
 
-        object_num = int.from_bytes(self.header[13:17], "little", signed=True)
+        object_num = read_uint32(file)
 
         #extract text data
-        file_size = os.path.getsize(self.file_name)-4
+        file_size = get_file_size(file)-4
         self.text_object_list = []
         while (file.tell()<file_size):
             #get id string
-            _, id = TextUexp.read_str(file)
+            id = read_str(file)
             if id[0]!="$":
                 raise RuntimeError("Parse failed: ID not found")
 
-            text_utf16, text = TextUexp.read_str(file)
+            text_utf16, text = read_utf_str(file)
             if text is None:
                 text_list=[]
                 text_utf16_list=[]
@@ -84,7 +123,7 @@ class TextUexp:
                 text_utf16_list=[text_utf16]
             
 
-            text_num = int.from_bytes(file.read(4), 'little')
+            text_num = read_uint32(file)
             
             sep=file.read(8)
             if sep in TextUexp.SEP:
@@ -94,14 +133,14 @@ class TextUexp:
                 if text_num!=0:
                     print(text)
                     raise RuntimeError("Parse failed: Number of texts not found")
-                file.seek(file.tell()-12)
+                file.seek(-12,1)
                 sep_type_list=[]
                 text_num=1
 
             #get other texts (sometimes, non subtitle data has more texts.)            
             if text_num>=2:
                 for i in range(text_num-1):
-                    text_utf16, text = TextUexp.read_str(file)
+                    text_utf16, text = read_utf_str(file)
                     sep = file.read(8)
                     if sep in TextUexp.SEP:
                         sep_type = TextUexp.SEP.index(sep)
@@ -116,7 +155,7 @@ class TextUexp:
                     raise RuntimeError("Parse failed: Unexpected separator found")
 
             #get speaker's name
-            speaker_utf16, speaker = TextUexp.read_str(file)
+            speaker_utf16, speaker = read_utf_str(file)
 
             if speaker is None:
                 speaker_utf16=False
@@ -253,14 +292,6 @@ class TextUexp:
                 new_speaker, new_utf16 = self.merge_string(speaker1, t["speaker"]["utf-16"], speaker2, t2["speaker"]["utf-16"], True, just_swap, reject_similar_word=reject_similar_word)
                 t["speaker"]={"utf-16":new_utf16, "str":new_speaker}
 
-    def str_to_bin(utf16, s):
-        num = len(s)+1
-        if utf16:
-            num = -num
-        num_byte = num.to_bytes(4, 'little', signed=True)
-        str_byte = s.encode("utf-16-le"*utf16+"ascii"*(not utf16))
-        return num_byte + str_byte + b"\x00"*(utf16+1)
-
     def save_as_uexp(self, file_name, reject_empty_data=False):
         #check uasset exist
         if not os.path.isfile(self.file_name[:-4]+"uasset"):
@@ -272,10 +303,11 @@ class TextUexp:
         file = open(file_name, "wb")
 
         file.write(self.header)
+        write_uint32(file, len(self.text_object_list))
         for t in self.text_object_list:
             #add id data
             id = t["id"]
-            file.write(TextUexp.str_to_bin(False, id))
+            write_str(file, id)
 
             #add text 1 data (may be subtitle text)
             text_list = t["text"]["str"]
@@ -287,14 +319,14 @@ class TextUexp:
                     file.write(b"\x01\x00\x00\x00")
                     file.write(TextUexp.SEP[sep_type_list[0]])
             else:
-                file.write(TextUexp.str_to_bin(text_utf16_list[0], text_list[0]))
+                write_utf_str(file, text_utf16_list[0], text_list[0])
                 if len(sep_type_list)>0:
-                    file.write(len(text_list).to_bytes(4, byteorder="little"))
+                    write_uint32(file, len(text_list))
                     file.write(TextUexp.SEP[sep_type_list[0]])
                 
                 #add other text data
                 for i in range(len(text_list)-1):
-                    file.write(TextUexp.str_to_bin(text_utf16_list[i+1], text_list[i+1]))
+                    write_utf_str(file, text_utf16_list[i+1], text_list[i+1])
                     file.write(TextUexp.SEP[sep_type_list[i+1]])
 
             #add speaker's name
@@ -302,15 +334,15 @@ class TextUexp:
             if speaker["str"]=="":
                 file.write(TextUexp.PAD)
             else:
-                file.write(TextUexp.str_to_bin(speaker["utf-16"], speaker["str"]))
+                write_utf_str(file, speaker["utf-16"], speaker["str"])
+        new_uexp_size=file.tell()
         file.write(TextUexp.FOOT)
 
         #write a new .uexp file
         file.close()
 
         #write a new .uasset file
-        new_uexp_size = os.path.getsize(file_name)-4
-        new_uexp_size_bin=new_uexp_size.to_bytes(4, 'little', signed=True)
+        new_uexp_size_bin=new_uexp_size.to_bytes(4, 'little')
 
         uasset_bin = util.read_binary(self.file_name[:-4]+"uasset")
         util.write_binary(file_name[:-4]+"uasset", uasset_bin[:-92]+new_uexp_size_bin+uasset_bin[-88:])
