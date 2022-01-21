@@ -57,11 +57,11 @@ def make_dual_sub_mod(args):
 
         #Export subtitle data as json
         if args.save_as_json:
-            uexp.save_as_json("json/"+lang+"/"+f[:-4]+".json")
+            uexp.save_as_json("json/"+lang+"/"+f[:-4]+"json")
 
         #Export subtitle data as json
         if args.save_as_txt:
-            uexp.save_as_txt("txt/"+lang+"/"+f[:-4]+".txt")
+            uexp.save_as_txt("txt/"+lang+"/"+f[:-4]+"txt")
 
         #Make a mod folder
         out_dir = os.path.join(mod_name, TEXT_DIR, lang)
