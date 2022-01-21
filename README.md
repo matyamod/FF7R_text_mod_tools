@@ -1,4 +1,4 @@
-# FF7R Text Mod Tools ver 1.4.1
+# FF7R Text Mod Tools ver 1.4.2
 Text modding tools for FF7R (Final Fantasy VII Remake)<br>
 
 
@@ -11,7 +11,7 @@ There are 4 features in my tool.
 - Resizes subtitle widget
 
 ## Download
-Download `FF7R_text_mod_tools_1.4.0.zip` from here.<br>
+Download `FF7R_text_mod_tools_*.zip` from here.<br>
 [Releases · matyalatte/FF7R_text_mod_tools](https://github.com/matyalatte/FF7R_text_mod_tools/releases)<br>
 <br>
 
@@ -41,11 +41,15 @@ I posted some tips (format specification, text decoration, etc.) here.<br>
 
 ## Q&A
 
-### Is the .exe file malware?
+### Is the .exe file malware? My antivirus reports it as virus.
 No, it is a false positive caused by pyinstaller.<br>
 <br>
 [AVG (and other antiviruses) reports exe file as containing virus · Issue #603 · pyinstaller/pyinstaller](https://github.com/pyinstaller/pyinstaller/issues/603)<br>
 <br>
 I recompiled the bootloader of pyinstaller to reduce false positives, but it will not completely solve the issue.<br>
-If you are worried about security, please run [the Python scripts](https://github.com/matyalatte/FF7R_text_mod_tools/tree/main/src) instead of the .exe file.<br>
+If you are worried about the security, please run [the Python scripts](https://github.com/matyalatte/FF7R_text_mod_tools/tree/main/src) instead of the .exe file.<br>
+<br>
 
+### Is there any way to import font data? The game does not support some characters in my language.
+I can import .ttf into the game.<br>
+Let me know your language and the font you want to import.

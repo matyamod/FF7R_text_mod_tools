@@ -1,5 +1,13 @@
 FF7R Text Mod Tools Change Log
 
+ver1.4.2
+-mod data structure
+-change json format (compatible with old versions.)
+-add make_mod_folder.bat
+I found a more appropriate interpretation of the format specification.
+So I've applied it to my tool.
+This update does not contain any bug fixes.
+
 ver1.4.1
 -bugfix (about canceling replacements)
 -add some help URLs for GUI
