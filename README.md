@@ -51,5 +51,5 @@ If you are worried about the security, please run [the Python scripts](https://g
 <br>
 
 ### Is there any way to import font data? The game does not support some characters in my language.
-I can import .ttf into the game.<br>
-Let me know your language and the font you want to import.
+Use my font modding tools.<br>
+[matyalatte/FF7R-font-mod-tools: Font modding tools for FF7R (Final Fantasy VII Remake)](https://github.com/matyalatte/FF7R-font-mod-tools)<br>
