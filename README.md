@@ -1,8 +1,10 @@
 # FF7R Text Mod Tools ver 1.4.2
 Text modding tools for FF7R (Final Fantasy VII Remake)<br>
 
-
-<img src = "image/ff7r_dualsub_sample.jpg" width=600>
+> [!warning]
+> This repository is discontinued.
+> Here is my new project for text modding.  
+> https://github.com/matyamod/ff7r-text-tool
 
 There are 4 features in my tool.
 - Exports text data
